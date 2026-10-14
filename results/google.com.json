@@ -1,24 +1,24 @@
 {
   "domain": "google.com",
   "status": "done",
-  "audited_at": "2026-10-14T20:20:44Z",
-  "composite": 80,
-  "roast": "Google\u2019s homepage has been reduced to a very polished essay about cookies, with the search box playing hide-and-seek behind the curtain.",
-  "fix": "Make the search field and a clear search action immediately accessible without requiring visitors to wade through a full-screen consent wall.",
+  "audited_at": "2026-10-14T21:36:09Z",
+  "composite": 88,
+  "roast": "Google\u2019s homepage is so minimalist that its cookie-consent form has become the main event\u2014with a terms-and-conditions-length opening act.",
+  "fix": "Keep the search box immediately usable while presenting a shorter, clearer cookie choice that does not take over the first screen.",
   "scores": {
-    "speed": 80,
-    "mobile": 97,
+    "speed": 99,
+    "mobile": 96,
     "accessibility": 96,
     "seo": 92,
     "agent_readiness": 52,
-    "clarity": 78,
-    "design": 84,
-    "copy": 62
+    "clarity": 92,
+    "design": 92,
+    "copy": 82
   },
   "notes": {
-    "agent_readiness": "Google scores 52/100 (C), with discovery 13/17, access 23/53, usability 24/53, and no payments layer."
+    "agent_readiness": "Google scores 52/100 (Grade C) for agent readiness, with notable gaps in machine-readable access and usability features such as an OpenAPI spec and public API."
   },
-  "model": "OpenAI GPT-4.1",
+  "model": "openai/gpt-6-luna",
   "blocks_automated_browsers": false,
   "minutes": 1
 }
