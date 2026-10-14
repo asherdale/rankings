@@ -1,4 +1,24 @@
 {
   "domain": "walmart.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T20:21:57Z",
+  "composite": 74,
+  "roast": "Walmart\u2019s homepage has so many deals that even the carousel needs a pause button to catch its breath.",
+  "fix": "Replace the below-the-fold loading placeholders with fully loaded, clearly grouped category and recommendation sections so shoppers can browse beyond the first deal row.",
+  "scores": {
+    "speed": 59,
+    "mobile": 37,
+    "accessibility": 100,
+    "seo": 92,
+    "agent_readiness": 58,
+    "clarity": 92,
+    "design": 84,
+    "copy": 74
+  },
+  "notes": {
+    "agent_readiness": "Walmart scores 58/100 (C), with usable shopping paths but notable gaps in agent-friendly discovery, APIs, and structured access."
+  },
+  "model": "OpenAI GPT-4.1",
+  "blocks_automated_browsers": false,
+  "minutes": 2
 }
