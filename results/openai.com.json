@@ -1,24 +1,24 @@
 {
   "domain": "openai.com",
   "status": "done",
-  "audited_at": "2026-10-14T20:22:24Z",
-  "composite": 79,
-  "roast": "OpenAI\u2019s homepage asks \u201cWhat can I help with?\u201d and gives the question so much whitespace it has time to become existential.",
-  "fix": "Add one plain-language sentence that says what OpenAI is and points newcomers to the right starting place before the prompt.",
+  "audited_at": "2026-10-14T21:58:44Z",
+  "composite": 81,
+  "roast": "OpenAI's homepage asks 'What can I help with?' then hands you a surf trip, a stock quote, and a Mahjong lesson before you've even blinked.",
+  "fix": "Add a one-line explanation of what OpenAI makes beside the ChatGPT prompt, so first-time visitors can connect the product with the broader company.",
   "scores": {
-    "speed": 70,
-    "mobile": 42,
+    "speed": 59,
+    "mobile": 57,
     "accessibility": 100,
     "seo": 100,
     "agent_readiness": 60,
-    "clarity": 85,
-    "design": 93,
-    "copy": 80
+    "clarity": 94,
+    "design": 92,
+    "copy": 84
   },
   "notes": {
-    "agent_readiness": "Discovery is strong (15/16), but access (29/54) and usability (30/62) lag, especially on agent-facing WebMCP, MCP Apps, and machine-readable permissions."
+    "agent_readiness": "OpenAI scores 60/100 (C): discovery is strong, but agent access and usability still have notable gaps, including limited machine-readable homepage content and missing agent-facing tools."
   },
-  "model": "OpenAI GPT-4o",
+  "model": "openai/gpt-6-luna",
   "blocks_automated_browsers": false,
-  "minutes": 3
+  "minutes": 4
 }
