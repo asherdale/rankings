@@ -1,50 +1,49 @@
-# Rubric
+# How sites are scored
 
-Every site gets the same eight scores from 0 to 100. The composite is their
-weighted average, using the weights in [rubric.json](rubric.json), and gets a
-letter grade.
+Every site gets its own machine and AI agent. The agent opens the homepage in
+a real browser, takes screenshots, and hands them to four AI judges: Claude,
+GPT, Gemini, and Muse. Each result file records the exact model behind each judge.
 
-| Category | How it's measured |
+Each judge sees the same screenshots of the desktop homepage, the phone view,
+and the full page, plus the page's text and five measurements. It scores the
+homepage from 1 to 10 on how quickly a stranger understands what it is and
+what to do next, how good it looks on desktop and phone, and how good the
+writing is. Then it writes a one-line roast. The judges work separately and
+never see each other's scores.
+
+Weak measurements count against a homepage. Lighthouse and Ora score from 0
+to 100; the site shows them out of 10 like everything else:
+
+| Measurement | How it's measured |
 | --- | --- |
-| Speed | [Lighthouse](https://developer.chrome.com/docs/lighthouse) performance score on desktop. |
-| Mobile | Lighthouse performance score on a simulated phone. |
+| Mobile speed | [Lighthouse](https://developer.chrome.com/docs/lighthouse) performance score on a simulated phone. |
+| Desktop speed | Lighthouse performance score on desktop. |
 | Accessibility | Lighthouse accessibility score on a phone. |
 | SEO | Lighthouse SEO score on a phone. |
-| Agent readiness | [Ora](https://ora.ai)'s agent-readiness score: how well AI agents can find, read, use, and pay the site. |
-| Clarity | An AI reviewer looks at the homepage and scores how quickly a stranger understands what the company does and what to do next. |
-| Design | The reviewer scores the desktop and phone screenshots. |
-| Copy | The reviewer scores the headline and page text. |
+| Agent readiness | [Ora](https://ora.ai)'s score for how well AI agents can find, read, and use the site. If Ora can't score a site, it shows as n/a. |
 
-Every review comes from the same model with the same instructions, scored against these anchors:
+The site's score is the judges' average, rounded to one decimal, and gets a
+letter grade. Sites with the same score are ordered by their average
+measurement.
 
-| Score | Clarity | Design | Copy |
-| --- | --- | --- | --- |
-| 90+ | A stranger knows what it is and what to do next within five seconds. | Polished and consistent, easy to scan on desktop and phone. | Specific and concrete, with a real voice. |
-| 50 | They figure it out after some reading. | Dated or cluttered, but usable. | Generic marketing language. |
-| Under 30 | Still unclear after scrolling. | Broken or hard to use. | Confusing or empty. |
-
-| Grade | Composite |
+| Grade | Score |
 | --- | --- |
-| A+ | 95 and up |
-| A | 85 to 94 |
-| B | 70 to 84 |
-| C | 55 to 69 |
-| D | 40 to 54 |
-| F | Under 40 |
+| A+ | 9.5 and up |
+| A | 8.5 to 9.4 |
+| B | 7 to 8.4 |
+| C | 5.5 to 6.9 |
+| D | 4 to 5.4 |
+| F | Under 4 |
 
-The reviewer also writes a one-sentence roast and the one fix that would help
-most.
-
-Each site is measured by Lighthouse on its own machine and visited by an
-automated browser that identifies itself as `RateMyHomepage`. If a site blocks
-the browser, the review uses Lighthouse's screenshots instead, and the site's
-page says so. If it blocks Lighthouse, Google's
-[PageSpeed Insights](https://pagespeed.web.dev), which runs the same
+Each site is visited by an automated browser that identifies itself as
+`RateMyHomepage`. If a site blocks the browser, the judges see Lighthouse's
+screenshots instead, and the site's page says so. If it blocks Lighthouse,
+Google's [PageSpeed Insights](https://pagespeed.web.dev), which runs the same
 Lighthouse from Google's servers, measures it instead. Sites that neither can
 load aren't listed.
 
-These scores come from automated tools and an AI model. They're opinions, not
-facts, and a rerun can move a score by a few points.
+These scores are opinions from AI models, not facts, and a rerun can move a
+score.
 
 ## Result files
 
@@ -58,23 +57,19 @@ While a site is being scored, its result is just `domain` and
   "domain": "example.com",
   "status": "done",
   "audited_at": "2026-10-14T18:20:00Z",
-  "composite": 71,
-  "roast": "One funny, sharp sentence about the site.",
-  "fix": "The one fix that would help most.",
-  "scores": {
-    "speed": 94,
-    "mobile": 60,
-    "accessibility": 96,
-    "seo": 92,
-    "agent_readiness": 23,
-    "clarity": 82,
-    "design": 85,
-    "copy": 70
+  "score": 6.5,
+  "judges": {
+    "claude": { "model": "anthropic/claude-haiku-5.5", "score": 7, "roast": "One funny, sharp sentence." },
+    "gpt": { "model": "openai/gpt-5-nano", "score": 5, "roast": "One funny, sharp sentence." },
+    "gemini": { "model": "google/gemini-2.5-flash-lite", "score": 7, "roast": "One funny, sharp sentence." },
+    "muse": { "model": "meta/muse-glimmer-30b", "score": 7, "roast": "One funny, sharp sentence." }
   },
-  "notes": {
-    "agent_readiness": "Ora's one-sentence summary."
-  },
-  "model": "openai/gpt-6-luna",
+  "mobile_speed": 41,
+  "desktop_speed": 88,
+  "accessibility": 96,
+  "seo": 92,
+  "agent_readiness": 23,
+  "agent_readiness_summary": "Ora's one-sentence summary.",
   "blocks_automated_browsers": false,
   "minutes": 2
 }

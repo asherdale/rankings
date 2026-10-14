@@ -1,13 +1,14 @@
 ---
 name: deploy-rankings-agents
-description: Deploy or update the Rate My Homepage agents on Omnara, which give every website its own machine and AI agent, score it with Lighthouse, Ora, and an AI review, and commit the results to this repository. Use when the user asks to deploy, set up, update, run, or remove the rankings agents.
+description: Deploy or update the Rate My Homepage agents on Omnara, which give every website its own machine and AI agent, have Claude, GPT, Gemini, and Muse judges score its homepage out of 10, and commit the results to this repository. Use when the user asks to deploy, set up, update, run, or remove the rankings agents.
 ---
 
 # Deploy the rankings agents
 
-You are setting up two Omnara agent profiles from `agents/` in this
-repository: `rankings`, the main agent, and `rankings-site`, which it launches
-once per website. The goal: the user has watched the main agent rank the
+You are setting up three Omnara agent profiles from `agents/` in this
+repository: `rankings`, the main agent; `rankings-site`, which it launches
+once per website; and `rankings-judge`, which each site agent launches four
+times, once per AI lab. The goal: the user has watched the main agent rank the
 20-site dry run in `seeds/dry-run.txt` and has seen the results on the site.
 
 - Skip anything that's already done, and follow the user's lead on order.
@@ -92,15 +93,22 @@ npx omnara memory-stores create --name rankings --agent-access read_write --json
    if it's granted, otherwise to the first pool. Its machines need Python and
    Playwright with Chromium, which Omnara-managed pools have.
 2. `npx omnara grant models list --json` lists models as `provider_config`
-   and `name`.
-   `MODEL_PROVIDER_CONFIG` and `MODEL_NAME` run the main agent and review
-   every site, so the model must accept images: `openai/gpt-6-luna` on
-   `omnara-openrouter` if granted, otherwise an affordable model that does.
+   and `name`. All of them come from one `MODEL_PROVIDER_CONFIG`, normally
+   `omnara-openrouter`. Pick:
+   - `MODEL_NAME` for the main and site agents: a cheap model that's
+     reliable with tools, such as `openai/gpt-6-luna`.
+   - `CLAUDE_MODEL`, `GPT_MODEL`, `GEMINI_MODEL`, and `MUSE_MODEL` for the
+     judges: the cheapest model from each lab that accepts images, such as
+     `anthropic/claude-haiku-5.5`, `openai/gpt-5-nano`,
+     `google/gemini-2.5-flash-lite`, and `meta/muse-glimmer-30b`.
+
+   If a model isn't granted, ask the user whether to add it with
+   `npx omnara models create` and `npx omnara grant models add`.
 
 ## 7. Create the profiles
 
-The main agent's config refers to `rankings-site` by name, so create that
-one first. For each file, copy it outside the repository (or to a path git
+Each config refers to the next one down by name, so create them in the order
+below. For each file, copy it outside the repository (or to a path git
 ignores), replace every `{{PLACEHOLDER}}`, and check that
 `grep -n '{{' <file>` prints nothing. Then, if
 `npx omnara profiles list --name <profile> --json` finds it, run
@@ -109,7 +117,8 @@ otherwise `npx omnara profiles create --name <profile> --file <file> --json`.
 
 | File | Profile | Placeholders |
 | --- | --- | --- |
-| `agents/site.yaml` | `rankings-site` | `MODEL_PROVIDER_CONFIG`, `MODEL_NAME` |
+| `agents/judge.yaml` | `rankings-judge` | `MODEL_PROVIDER_CONFIG`, `GPT_MODEL` |
+| `agents/site.yaml` | `rankings-site` | `MODEL_PROVIDER_CONFIG`, `MODEL_NAME`, and the four judge models |
 | `agents/rankings.yaml` | `rankings` | all of them from steps 2 to 6 |
 
 Note the `rankings` profile's `id` and `current_config_id`.
@@ -123,11 +132,8 @@ npx omnara agents launch --profile <rankings-profile-id> --config <current-confi
 
 Share `https://app.omnara.com/projects/<project-id>/agents/<agent-id>` so the
 user can watch the main agent start a machine and a site agent for each of
-the 20 sites. The batch takes about five minutes. When it's done, run `git pull`, `npm run stats`,
-and `npm run preview`.
-
-If `npm run stats` marks a category as flat, it barely separates sites. Tell
-the user; if they agree, lower its weight in `rubric.json` and commit it.
+the 20 sites, and each site agent start its four judges. The batch takes a
+few minutes. When it's done, run `git pull` and `npm run preview`.
 
 ## 9. Wrap up
 
@@ -138,7 +144,7 @@ Tell the user:
   unless asked to rerun them.
 - **Publish the site:** deploy with `npm run build` and the `dist` folder on
   any static host, and set `site/config.json`.
-- **Remove it:** delete both profiles with
+- **Remove it:** delete the three profiles with
   `npx omnara profiles delete <agent-profile-id>`, then the `rankings` memory
   store, the `rankings-psi-key` secret, and the `rankings-github`
   integration.

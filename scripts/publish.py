@@ -10,14 +10,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DOMAIN = re.compile(r"^[a-z0-9-]+(\.[a-z0-9-]+)+$")
-CATEGORIES = ("speed", "mobile", "accessibility", "seo", "agent_readiness", "clarity", "design", "copy")
-KEYS = {"domain", "status", "audited_at", "composite", "roast", "fix", "scores", "notes", "model",
+JUDGES = {"claude", "gpt", "gemini", "muse"}
+MEASUREMENTS = ("mobile_speed", "desktop_speed", "accessibility", "seo", "agent_readiness")
+KEYS = {"domain", "status", "audited_at", "score", "judges", *MEASUREMENTS, "agent_readiness_summary",
         "blocks_automated_browsers", "minutes"}
 JPEG = b"\xff\xd8\xff"
 
 
-def is_score(value):
-    return isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 100
+def is_int(value, low, high):
+    return isinstance(value, int) and not isinstance(value, bool) and low <= value <= high
 
 
 def is_text(value, limit):
@@ -27,14 +28,22 @@ def is_text(value, limit):
 def check_result(data, domain):
     if set(data) - KEYS or data.get("domain") != domain or data.get("status") != "done":
         return "unexpected fields, domain, or status"
-    if not is_score(data.get("composite")) or set(data.get("scores", {})) != set(CATEGORIES):
-        return "missing scores"
-    if not all(is_score(data["scores"][c]) for c in CATEGORIES):
-        return "scores must be integers from 0 to 100"
-    texts = [(data.get("roast"), 200), (data.get("fix"), 200), (data.get("model"), 80)]
-    texts += [(v, 300) for v in data.get("notes", {}).values()]
-    if set(data.get("notes", {})) - {"agent_readiness"} or not all(is_text(v, n) for v, n in texts):
-        return "text fields must be single sentences within length limits"
+    judges = data.get("judges")
+    if not isinstance(judges, dict) or set(judges) != JUDGES:
+        return "judges must be claude, gpt, gemini, and muse"
+    for judge in judges.values():
+        if set(judge) != {"model", "score", "roast"} or not is_int(judge["score"], 1, 10):
+            return "each judge needs a model, a score from 1 to 10, and a roast"
+        if not is_text(judge["model"], 80) or not is_text(judge["roast"], 200):
+            return "judge text fields must be single sentences within length limits"
+    if data.get("score") != round(sum(j["score"] for j in judges.values()) / len(judges), 1):
+        return "score must be the judges' average"
+    if not all(is_int(data.get(key), 0, 100) for key in MEASUREMENTS if key != "agent_readiness"):
+        return "measurements must be integers from 0 to 100"
+    if data.get("agent_readiness") is not None and not is_int(data["agent_readiness"], 0, 100):
+        return "agent_readiness must be an integer from 0 to 100 or null"
+    if "agent_readiness_summary" in data and not is_text(data["agent_readiness_summary"], 300):
+        return "agent_readiness_summary must be one sentence"
     if not isinstance(data.get("minutes"), int) or not isinstance(data.get("blocks_automated_browsers"), bool):
         return "bad minutes or blocks_automated_browsers"
     return None

@@ -1,12 +1,11 @@
 # Rate My Homepage
 
-AI agents score websites on eight things, from page speed to how well AI
-agents can use them, and rank them at
-[ratemyhomepage.pages.dev](https://ratemyhomepage.pages.dev).
+Claude, GPT, Gemini, and Muse rate homepages out of 10, and the results are
+ranked at [ratemyhomepage.pages.dev](https://ratemyhomepage.pages.dev).
 
 ## How it works
 
-Two [Omnara](https://www.omnara.com) agent profiles, in [`agents/`](agents),
+Three [Omnara](https://www.omnara.com) agent profiles, in [`agents/`](agents),
 do the work:
 
 - **The main agent** ([`rankings.yaml`](agents/rankings.yaml)) takes a batch
@@ -15,12 +14,16 @@ do the work:
   [`scripts/publish.py`](scripts/publish.py) checks them and pushes them
   here.
 - **Site agents** ([`site.yaml`](agents/site.yaml)), one per website, run
-  [`scripts/rank.py`](scripts/rank.py) to measure the site with Lighthouse and
-  take screenshots in a real browser, ask [Ora](https://ora.ai)'s MCP server for
-  the site's agent-readiness score, and review the site. They read untrusted
-  web pages, so they hold no credentials.
+  [`scripts/rank.py`](scripts/rank.py) to take screenshots in a real browser
+  and measure it with Lighthouse, and ask [Ora](https://ora.ai)'s MCP
+  server for the site's agent-readiness score.
+- **Judges** ([`judge.yaml`](agents/judge.yaml)), four per website, each on a
+  model from a different lab, look at the screenshots and score the homepage
+  out of 10 with a one-line roast. The site's score is their average.
 
-[RUBRIC.md](RUBRIC.md) defines every score.
+Site agents and judges read untrusted web pages, so they hold no credentials.
+
+[RUBRIC.md](RUBRIC.md) explains the scoring.
 
 ## Get ranked
 
@@ -44,8 +47,7 @@ first batch.
 
 ```sh
 npm run build     # writes dist/
-npm run preview   # builds and serves dist/ locally
-npm run stats     # shows how scores spread across sites
+npm run preview   # builds and serves dist/ at localhost:4321
 ```
 
 Deploy `dist/` to any static host. Cloudflare Pages and Vercel work with

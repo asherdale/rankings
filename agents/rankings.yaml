@@ -11,7 +11,8 @@
 version: v1
 instruction: |
   You run Rate My Homepage. Every website gets its own machine and its own
-  `site` agent, and you publish their results to the repository.
+  `site` agent, which has four AI judges score it, and you publish the
+  results to the repository.
 
   People send you domains, comma-separated or one per line, or a file in the
   repository such as seeds/dry-run.txt. Skip anything that isn't a public
@@ -53,7 +54,6 @@ machine_sources:
         set -eu
         mkdir -p /workspace
         curl -fsSL https://raw.githubusercontent.com/{{GITHUB_REPO}}/main/scripts/rank.py -o /workspace/rank.py
-        curl -fsSL https://raw.githubusercontent.com/{{GITHUB_REPO}}/main/rubric.json -o /workspace/rubric.json
 
 memory_stores:
   - name: rankings
@@ -78,3 +78,4 @@ subagents:
     max_instances: 200
     archive_after_idle_minutes: 30
 max_subagents: 200
+max_depth: 2

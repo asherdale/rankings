@@ -21,7 +21,9 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
-CATEGORIES = ("speed", "mobile", "accessibility", "seo", "agent_readiness", "clarity", "design", "copy")
+DEADLINE = time.monotonic() + 300
+JUDGES = {"claude": "Claude", "gpt": "GPT", "gemini": "Gemini", "muse": "Muse"}
+GRADES = ((9.5, "A+"), (8.5, "A"), (7, "B"), (5.5, "C"), (4, "D"), (0, "F"))
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/140.0.0.0 Safari/537.36 RateMyHomepage/1.0 (+https://ratemyhomepage.pages.dev)"
@@ -36,11 +38,6 @@ BLOCK_MARKERS = (
     "pardon our interruption",
     "captcha",
 )
-DEFAULT_RUBRIC = {
-    "weights": {c: 1 for c in CATEGORIES},
-    "grades": [[95, "A+", "Exceptional"], [85, "A", "Excellent"], [70, "B", "Good"],
-               [55, "C", "Average"], [40, "D", "Weak"], [0, "F", "Poor"]],
-}
 TONES = {"A+": "#059669", "A": "#16a34a", "B": "#65a30d", "C": "#ca8a04", "D": "#ea580c", "F": "#dc2626"}
 DOMAIN = re.compile(r"^[a-z0-9-]+(\.[a-z0-9-]+)+$")
 
@@ -91,7 +88,7 @@ def lighthouse(url, preset, chrome):
         if preset == "desktop":
             command.append("--preset=desktop")
         env = dict(os.environ, CHROME_PATH=chrome) if chrome else dict(os.environ)
-        proc = subprocess.run(command, env=env, capture_output=True, text=True, timeout=150)
+        proc = subprocess.run(command, env=env, capture_output=True, text=True, timeout=remaining(150))
         if not os.path.exists(path):
             raise RuntimeError((proc.stderr or proc.stdout).strip()[-200:] or "Lighthouse produced no report")
         report = json.load(open(path))
@@ -103,10 +100,10 @@ def pagespeed(url, preset):
     query += [("category", c) for c in ("PERFORMANCE", "ACCESSIBILITY", "SEO")]
     for attempt in range(5):
         try:
-            with urllib.request.urlopen(f"{PSI}?{urllib.parse.urlencode(query)}", timeout=120) as resp:
+            with urllib.request.urlopen(f"{PSI}?{urllib.parse.urlencode(query)}", timeout=remaining(120)) as resp:
                 return parse(json.load(resp)["lighthouseResult"], preset)
         except urllib.error.HTTPError as exc:
-            if exc.code != 429 or attempt == 4:
+            if exc.code != 429 or attempt == 4 or remaining(30) < 30:
                 raise RuntimeError(f"PageSpeed HTTP {exc.code}")
             time.sleep(random.uniform(10, 30))
 
@@ -127,17 +124,23 @@ def parse(report, preset):
 
 def measure(urls, preset, chrome, install):
     if install:
-        install.wait(timeout=180)
+        install.wait(timeout=remaining(180))
     attempts = [(lighthouse, (urls[0], preset, chrome))]
     if os.environ.get("PSI_API_KEY"):
         attempts += [(pagespeed, (url, preset)) for url in urls[:2]]
-    last = None
+    last = RuntimeError("timed out")
     for run, run_args in attempts:
+        if remaining(1) < 1:
+            break
         try:
             return run(*run_args)
         except Exception as exc:
             last = exc
     raise last
+
+
+def remaining(cap):
+    return max(0, min(cap, DEADLINE - time.monotonic()))
 
 
 def install_lighthouse():
@@ -295,7 +298,10 @@ def collect(args):
         render(p, SHEET.format(**{k: data_url(v) for k, v in shots.items()}), out / "sheet.jpg", 2000, full_page=True)
 
     result.update(
-        lighthouse={"mobile": mobile_scores, "desktop": desktop_scores},
+        mobile_speed=mobile_scores["performance"],
+        desktop_speed=desktop_scores["performance"],
+        accessibility=mobile_scores["accessibility"],
+        seo=mobile_scores["seo"],
         blocks_automated_browsers=page["blocked"],
         title=page.get("title") or "",
         description=page.get("description") or "",
@@ -310,32 +316,39 @@ CARD = """<!doctype html><html><head><meta charset="utf-8">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap">
 <style>
 * {{ box-sizing: border-box; margin: 0; }}
-body {{ width: 1200px; height: 630px; background: #fff; font-family: Geist, Inter, system-ui, sans-serif; color: #0a0a0a; }}
-.card {{ display: grid; grid-template-columns: 1fr 470px; height: 100%; }}
-.left {{ padding: 60px 40px 52px 64px; display: flex; flex-direction: column; }}
+body {{ width: 1200px; height: 630px; background: #0a0f1a; font-family: Geist, Inter, system-ui, sans-serif; color: #e6edf7; }}
+.card {{ display: grid; grid-template-columns: 1fr 450px; height: 100%; }}
+.left {{ padding: 56px 40px 48px 64px; display: flex; flex-direction: column; }}
 .site {{ display: flex; align-items: center; gap: 14px; }}
-.site img {{ width: 40px; height: 40px; border-radius: 9px; }}
+.site img {{ width: 40px; height: 40px; border-radius: 9px; background: #fff; }}
 .domain {{ font-size: 40px; font-weight: 600; letter-spacing: -0.03em; }}
-.roast {{ margin-top: 26px; font-size: 30px; line-height: 1.3; font-weight: 500; letter-spacing: -0.01em; color: #262626; }}
-.score {{ display: flex; align-items: center; gap: 22px; margin-top: auto; }}
-.num {{ font-size: 132px; font-weight: 700; line-height: 0.85; letter-spacing: -0.05em; color: {tone}; }}
-.grade {{ font-size: 48px; font-weight: 700; color: {tone}; background: {tint}; border-radius: 14px; padding: 4px 18px; }}
-.brand {{ font-size: 18px; color: #737373; line-height: 1.4; }}
-.right {{ padding: 52px 52px 52px 0; }}
-.shot {{ width: 100%; height: 100%; border-radius: 16px; border: 1px solid #ebebeb; background: #fafafa left top / cover no-repeat url("{shot}"); }}
+.score {{ display: flex; align-items: baseline; gap: 14px; margin-top: 22px; }}
+.num {{ font-size: 104px; font-weight: 700; line-height: 0.9; letter-spacing: -0.05em; color: {tone}; }}
+.out {{ font-size: 36px; color: #7d8ba3; font-weight: 600; }}
+.grade {{ font-size: 40px; font-weight: 700; color: {tone}; background: {tint}; border-radius: 12px; padding: 2px 16px; margin-left: 8px; }}
+.judges {{ display: grid; gap: 10px; margin-top: auto; }}
+.judge {{ display: grid; grid-template-columns: 112px 1fr; gap: 16px; align-items: baseline; }}
+.who {{ display: flex; justify-content: space-between; font-size: 20px; color: #b6c2d6; }}
+.who {{ font-size: 18px; }}
+.who b {{ font-size: 22px; }}
+.judge q {{ display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 19px; line-height: 1.28; font-weight: 500; color: #e6edf7; }}
+.brand {{ margin-top: 18px; font-size: 18px; color: #c6f432; }}
+.right {{ padding: 48px 48px 48px 0; }}
+.shot {{ width: 100%; height: 100%; border-radius: 16px; border: 1px solid #1e2a3f; background: #0f1626 left top / cover no-repeat url("{shot}"); }}
 </style></head><body><div class="card">
 <div class="left">
 <div class="site"><img src="https://www.google.com/s2/favicons?domain={domain}&sz=128"><div class="domain">{domain}</div></div>
-<div class="roast">“{roast}”</div>
-<div class="score"><div class="num">{composite}</div><div><div class="grade">{letter}</div></div><div class="brand">ratemyhomepage.pages.dev<br>scored by AI agents on Omnara</div></div>
+<div class="score"><div class="num">{score}</div><div class="out">/10</div><div class="grade">{letter}</div></div>
+<div class="judges">{judges}</div>
+<div class="brand">ratemyhomepage.pages.dev</div>
 </div>
 <div class="right"><div class="shot"></div></div>
 </div></body></html>"""
 
 
-def score(value, name):
-    if not isinstance(value, int) or isinstance(value, bool) or not 0 <= value <= 100:
-        fail(f"{name} must be an integer from 0 to 100, got {value!r}")
+def number(value, name, low, high):
+    if not isinstance(value, int) or isinstance(value, bool) or not low <= value <= high:
+        fail(f"{name} must be an integer from {low} to {high}, got {value!r}")
     return value
 
 
@@ -343,14 +356,6 @@ def sentence(value, name, limit=200):
     if not isinstance(value, str) or not value.strip() or len(value) > limit or "\n" in value.strip():
         fail(f"{name} must be one sentence of at most {limit} characters")
     return value.strip()
-
-
-def load_rubric():
-    here = Path(__file__).resolve().parent
-    for path in (here / "rubric.json", here.parent / "rubric.json"):
-        if path.exists():
-            return json.loads(path.read_text())
-    return DEFAULT_RUBRIC
 
 
 def finish(args):
@@ -363,41 +368,49 @@ def finish(args):
     try:
         review = json.loads(sys.stdin.read())
     except json.JSONDecodeError as exc:
-        fail(f"the review on stdin isn't valid JSON ({exc})")
+        fail(f"the input on stdin isn't valid JSON ({exc})")
 
-    lh = collected["lighthouse"]
-    scores = {
-        "speed": score(lh["desktop"]["performance"], "speed"),
-        "mobile": score(lh["mobile"]["performance"], "mobile"),
-        "accessibility": score(lh["mobile"]["accessibility"], "accessibility"),
-        "seo": score(lh["mobile"]["seo"], "seo"),
-        "agent_readiness": score(review.get("ora_score"), "ora_score"),
-        "clarity": score(review.get("clarity"), "clarity"),
-        "design": score(review.get("design"), "design"),
-        "copy": score(review.get("copy"), "copy"),
+    given = review.get("judges")
+    if not isinstance(given, dict) or set(given) != set(JUDGES):
+        fail(f"judges must have exactly these keys: {', '.join(JUDGES)}")
+    judges = {
+        key: {
+            "model": sentence(given[key].get("model"), f"{key} model", 80),
+            "score": number(given[key].get("score"), f"{key} score", 1, 10),
+            "roast": sentence(given[key].get("roast"), f"{key} roast"),
+        }
+        for key in JUDGES
     }
-    rubric = load_rubric()
-    weights = rubric["weights"]
-    composite = round(sum(scores[c] * weights[c] for c in CATEGORIES) / sum(weights[c] for c in CATEGORIES))
-    letter = next(g[1] for g in rubric["grades"] if composite >= g[0])
+    score = round(sum(j["score"] for j in judges.values()) / len(judges), 1)
+    letter = next(g for minimum, g in GRADES if score >= minimum)
     result = {
         "domain": args.domain,
         "status": "done",
         "audited_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "composite": composite,
-        "roast": sentence(review.get("roast"), "roast"),
-        "fix": sentence(review.get("fix"), "fix"),
-        "scores": scores,
-        "notes": {"agent_readiness": sentence(review["ora_summary"], "ora_summary", 300)} if review.get("ora_summary") else {},
-        "model": sentence(review.get("model"), "model", 80),
+        "score": score,
+        "judges": judges,
+        "mobile_speed": number(collected["mobile_speed"], "mobile_speed", 0, 100),
+        "desktop_speed": number(collected["desktop_speed"], "desktop_speed", 0, 100),
+        "accessibility": number(collected["accessibility"], "accessibility", 0, 100),
+        "seo": number(collected["seo"], "seo", 0, 100),
+        "agent_readiness": None if review.get("ora_score") is None else number(review["ora_score"], "ora_score", 0, 100),
         "blocks_automated_browsers": bool(collected.get("blocks_automated_browsers")),
         "minutes": max(1, round((time.time() - collected["started_at"]) / 60)),
     }
+    if review.get("ora_summary"):
+        result["agent_readiness_summary"] = sentence(review["ora_summary"], "ora_summary", 300)
 
     tone = TONES[letter]
     thumb = next((out / n for n in ("thumb.jpg", "desktop.jpg") if (out / n).exists()), None)
-    card = CARD.format(tone=tone, tint=tone + "22", shot=data_url(thumb) if thumb else "", domain=html.escape(args.domain),
-                       roast=html.escape(result["roast"]), composite=composite, letter=letter)
+    card = CARD.format(
+        tone=tone, tint=tone + "22", shot=data_url(thumb) if thumb else "", domain=html.escape(args.domain),
+        score=score, letter=letter,
+        judges="".join(
+            f'<div class="judge"><div class="who">{name} <b style="color: {TONES[next(g for m, g in GRADES if judges[key]["score"] >= m)]}">'
+            f'{judges[key]["score"]}</b></div><q>{html.escape(judges[key]["roast"])}</q></div>'
+            for key, name in JUDGES.items()
+        ),
+    )
     with sync_playwright() as p:
         render(p, card, out / "card.jpg", 1200, 630)
 
@@ -411,14 +424,14 @@ def finish(args):
         add(f"cards/{args.domain}.jpg", (out / "card.jpg").read_bytes())
         if thumb:
             add(f"shots/{args.domain}.jpg", thumb.read_bytes())
-    print(json.dumps({"domain": args.domain, "composite": composite, "grade": letter, "bundle": str(bundle)}))
+    print(json.dumps({"domain": args.domain, "score": score, "grade": letter, "bundle": str(bundle)}))
 
 
 def main():
     parser = argparse.ArgumentParser(description="Rank one website for Rate My Homepage.")
     sub = parser.add_subparsers(dest="command", required=True)
     one = sub.add_parser("collect", help="get Lighthouse scores, screenshots, and page text")
-    two = sub.add_parser("finish", help="score the site from the review on stdin and bundle the result")
+    two = sub.add_parser("finish", help="average the judges' scores from stdin and bundle the result")
     for command in (one, two):
         command.add_argument("domain")
         command.add_argument("--out", default="/workspace/out")

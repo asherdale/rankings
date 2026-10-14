@@ -1,9 +1,10 @@
 {
   "title": "Rate My Homepage",
   "theme": "system",
-  "headline": "Every website, scored by AI agents.",
-  "tagline": "Every site gets its own machine and AI agent. It measures speed, accessibility, and agent readiness, then reviews the design and copy.",
+  "headline": "Claude, GPT, Gemini, and Muse rate your homepage.",
+  "tagline": "Every site gets its own computer and AI agent, which opens it in a real browser. Then four AI judges each score it out of 10.",
   "site_url": "https://ratemyhomepage.pages.dev",
   "x_handle": "AsherDale13",
+  "x_post_url": "",
   "repo_url": "https://github.com/asherdale/rankings"
 }
