@@ -1,4 +1,24 @@
 {
   "domain": "target.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T21:37:01Z",
+  "composite": 70,
+  "roast": "Target\u2019s homepage brought a bouncer to the shopping trip, then made the entire catalog wait outside.",
+  "fix": "Remove the automated-browser verification barrier so shoppers can actually see the homepage and reach its categories.",
+  "scores": {
+    "speed": 52,
+    "mobile": 24,
+    "accessibility": 90,
+    "seo": 100,
+    "agent_readiness": 49,
+    "clarity": 91,
+    "design": 78,
+    "copy": 76
+  },
+  "notes": {
+    "agent_readiness": "Target scores 49/100 (C) for agent readiness, with its biggest gaps in usability and machine-readable API access."
+  },
+  "model": "openai/gpt-6-luna",
+  "blocks_automated_browsers": false,
+  "minutes": 2
 }

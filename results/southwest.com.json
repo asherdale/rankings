@@ -1,24 +1,24 @@
 {
   "domain": "southwest.com",
   "status": "done",
-  "audited_at": "2026-10-14T20:25:45Z",
-  "composite": 67,
-  "roast": "Southwest's homepage packed a flight search, a $59 sale, a rewards pitch, and a cookie dialog into the overhead bin.",
-  "fix": "Keep the cookie notice from covering the mobile fare search so travelers can reach the primary booking controls immediately.",
+  "audited_at": "2026-10-14T21:36:31Z",
+  "composite": 70,
+  "roast": "Southwest puts the flight search right up front, then makes the cookie notice compete for boarding priority.",
+  "fix": "Make the cookie notice less obstructive on mobile so travelers can reach the fare search without dismissing a large overlay.",
   "scores": {
-    "speed": 37,
+    "speed": 58,
     "mobile": 25,
     "accessibility": 97,
     "seo": 92,
     "agent_readiness": 31,
-    "clarity": 91,
+    "clarity": 92,
     "design": 84,
     "copy": 78
   },
   "notes": {
-    "agent_readiness": "Ora rates Southwest 31/100 (D), with weak agent discovery, no discoverable developer resources, and gaps in access and usability support."
+    "agent_readiness": "Southwest scores 31/100 (D), with notable gaps in developer-resource discovery, API access, and agent-friendly usability."
   },
-  "model": "OpenAI GPT-5",
+  "model": "openai/gpt-6-luna",
   "blocks_automated_browsers": false,
   "minutes": 1
 }

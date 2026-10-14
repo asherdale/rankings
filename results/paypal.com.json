@@ -1,4 +1,24 @@
 {
   "domain": "paypal.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T21:37:13Z",
+  "composite": 78,
+  "roast": "PayPal says \u2018pay, send, and save smarter\u2019 while making the homepage feel like your wallet got hired as a lifestyle influencer.",
+  "fix": "Put the primary action for each visitor\u2014pay, send, or shop\u2014into a clear, prominent first-screen button instead of leading with a slogan and app artwork.",
+  "scores": {
+    "speed": 89,
+    "mobile": 34,
+    "accessibility": 95,
+    "seo": 92,
+    "agent_readiness": 64,
+    "clarity": 91,
+    "design": 84,
+    "copy": 78
+  },
+  "notes": {
+    "agent_readiness": "Ora scores PayPal 64/100 (C), with strong discovery but notable gaps in access and usability for agents."
+  },
+  "model": "openai/gpt-6-luna",
+  "blocks_automated_browsers": false,
+  "minutes": 2
 }

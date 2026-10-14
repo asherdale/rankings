@@ -1,24 +1,24 @@
 {
   "domain": "walgreens.com",
   "status": "done",
-  "audited_at": "2026-10-14T20:24:46Z",
-  "composite": 69,
-  "roast": "Walgreens\u2019 homepage has so many offers that even the coupons are probably clipping each other.",
-  "fix": "Give the pharmacy and shopping shortcuts clear priority, then consolidate the competing sale banners\u2014especially on mobile.",
+  "audited_at": "2026-10-14T21:36:43Z",
+  "composite": 67,
+  "roast": "Walgreens\u2019 homepage has the energy of a pharmacy, a Halloween aisle, and a coupon circular all trying to use the same megaphone.",
+  "fix": "Give the homepage one clear primary task and visually subordinate the rotating promotions and seasonal shopping offers.",
   "scores": {
-    "speed": 51,
-    "mobile": 28,
+    "speed": 46,
+    "mobile": 17,
     "accessibility": 100,
     "seo": 92,
     "agent_readiness": 34,
-    "clarity": 86,
-    "design": 82,
-    "copy": 76
+    "clarity": 89,
+    "design": 83,
+    "copy": 78
   },
   "notes": {
-    "agent_readiness": "Walgreens earns 34/100 (D): it is discoverable, but its agent access and usability remain limited."
+    "agent_readiness": "Walgreens scores 34/100 (D) for agent readiness, with notable gaps in access and usability such as no published API specification or MCP server."
   },
-  "model": "OpenAI GPT-5",
+  "model": "openai/gpt-6-luna",
   "blocks_automated_browsers": false,
-  "minutes": 5
+  "minutes": 2
 }

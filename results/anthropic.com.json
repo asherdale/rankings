@@ -1,24 +1,24 @@
 {
   "domain": "anthropic.com",
   "status": "done",
-  "audited_at": "2026-10-14T20:20:29Z",
-  "composite": 88,
-  "roast": "Anthropic\u2019s homepage makes frontier AI feel like a very tasteful museum where the gift shop sells Claude.",
-  "fix": "Add a clear, audience-specific next step beside the mission statement so researchers, businesses, and curious visitors can find their path without relying on the navigation.",
+  "audited_at": "2026-10-14T21:36:15Z",
+  "composite": 86,
+  "roast": "Anthropic\u2019s homepage has the composure of a museum placard, then casually announces its new model is the cheapest, fastest, and most capable one yet.",
+  "fix": "Make the primary next step more explicit for visitors who want to explore Anthropic\u2019s research rather than try Claude.",
   "scores": {
-    "speed": 95,
-    "mobile": 77,
+    "speed": 92,
+    "mobile": 60,
     "accessibility": 96,
     "seo": 92,
     "agent_readiness": 71,
-    "clarity": 91,
+    "clarity": 94,
     "design": 94,
-    "copy": 86
+    "copy": 89
   },
   "notes": {
-    "agent_readiness": "Ora rates anthropic.com 71/100 (B), with strong discovery but notable machine-access and usability gaps, and recommends publishing an OpenAPI spec, adding WebMCP and MCP Apps support, and structured data."
+    "agent_readiness": "Anthropic scores 71/100 (B), with strong discovery but opportunities to improve agent access and usability through API and structured-data support."
   },
-  "model": "OpenAI/ChatGPT",
+  "model": "openai/gpt-6-luna",
   "blocks_automated_browsers": false,
   "minutes": 1
 }

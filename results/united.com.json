@@ -1,24 +1,24 @@
 {
   "domain": "united.com",
   "status": "done",
-  "audited_at": "2026-10-14T20:22:44Z",
-  "composite": 57,
-  "roast": "United's homepage lets you book a flight, but its mobile view first asks whether you'd like to become a login.",
-  "fix": "Make the mobile homepage open on the flight-search form and keep sign-in secondary.",
+  "audited_at": "2026-10-14T21:37:25Z",
+  "composite": 59,
+  "roast": "United\u2019s homepage puts the whole airport check-in counter on your screen, then asks you to sign in on your phone before you\u2019ve even picked a destination.",
+  "fix": "Make the mobile landing view lead with the flight-search form and defer the sign-in prompt until someone chooses an account-specific task.",
   "scores": {
-    "speed": 33,
-    "mobile": 2,
+    "speed": 39,
+    "mobile": 10,
     "accessibility": 97,
-    "seo": 85,
+    "seo": 92,
     "agent_readiness": 0,
-    "clarity": 86,
-    "design": 78,
-    "copy": 75
+    "clarity": 88,
+    "design": 79,
+    "copy": 65
   },
   "notes": {
-    "agent_readiness": "Ora could not reach united.com, so no agent-readiness report was available."
+    "agent_readiness": "Ora scoring was unavailable: the domain was not reachable for scanning and the cached-score lookup returned an output validation error."
   },
-  "model": "OpenAI GPT-5",
+  "model": "openai/gpt-6-luna",
   "blocks_automated_browsers": true,
   "minutes": 2
 }

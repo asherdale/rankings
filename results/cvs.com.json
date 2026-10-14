@@ -1,4 +1,24 @@
 {
   "domain": "cvs.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T21:37:14Z",
+  "composite": 62,
+  "roast": "CVS has so many ways to get a flu shot that the cookie banner needs its own appointment slot.",
+  "fix": "Make the cookie notice dismissible without covering the main campaign and ensure the primary next step is unmistakable on mobile.",
+  "scores": {
+    "speed": 28,
+    "mobile": 25,
+    "accessibility": 88,
+    "seo": 92,
+    "agent_readiness": 32,
+    "clarity": 82,
+    "design": 78,
+    "copy": 68
+  },
+  "notes": {
+    "agent_readiness": "CVS scores 32/100 (D), with weak agent-facing discovery and usability due to missing discoverable developer resources, public API, and MCP support."
+  },
+  "model": "openai/gpt-6-luna",
+  "blocks_automated_browsers": false,
+  "minutes": 1
 }
