@@ -1,4 +1,36 @@
 {
   "domain": "amazon.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T23:46:27Z",
+  "score": 7.2,
+  "judges": {
+    "claude": {
+      "model": "anthropic/claude-haiku-5.5",
+      "score": 6,
+      "roast": "Amazon asked for a search bar and got a Halloween costume aisle."
+    },
+    "gpt": {
+      "model": "openai/gpt-5-nano",
+      "score": 8,
+      "roast": "Amazon's mega-nav maze makes first-timers crave a search bar."
+    },
+    "gemini": {
+      "model": "google/gemini-2.5-flash-lite",
+      "score": 8,
+      "roast": "Amazon: Where you go for one thing and leave with twenty."
+    },
+    "muse": {
+      "model": "meta/muse-glimmer-30b",
+      "score": 7,
+      "roast": "Your homepage celebrates Halloween and Christmas simultaneously."
+    }
+  },
+  "mobile_speed": 84,
+  "desktop_speed": 99,
+  "accessibility": 96,
+  "seo": 91,
+  "agent_readiness": 46,
+  "blocks_automated_browsers": false,
+  "minutes": 8,
+  "agent_readiness_summary": "Amazon scored 46/100 (D), with reasonable discovery but notable gaps in API access and agent usability, including no OpenAPI spec, scoped permissions, WebMCP, or MCP server."
 }

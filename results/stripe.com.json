@@ -1,4 +1,36 @@
 {
   "domain": "stripe.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T23:46:51Z",
+  "score": 7.5,
+  "judges": {
+    "claude": {
+      "model": "anthropic/claude-haiku-5.5",
+      "score": 8,
+      "roast": "Stripe brags about 1.73236388% of world GDP, then asks you to sign up."
+    },
+    "gpt": {
+      "model": "openai/gpt-5-nano",
+      "score": 8,
+      "roast": "That billionth line reads like a TED Talk for wallets."
+    },
+    "gemini": {
+      "model": "google/gemini-2.5-flash-lite",
+      "score": 7,
+      "roast": "Stripe: processing GDP faster than your browser loads."
+    },
+    "muse": {
+      "model": "meta/muse-glimmer-30b",
+      "score": 7,
+      "roast": "Stripe tracks GDP to eight decimals, loads to thirty-two."
+    }
+  },
+  "mobile_speed": 32,
+  "desktop_speed": 56,
+  "accessibility": 96,
+  "seo": 92,
+  "agent_readiness": 77,
+  "blocks_automated_browsers": false,
+  "minutes": 9,
+  "agent_readiness_summary": "Stripe scores 77/100 (B), with strong discovery but gaps in published OpenAPI, WebMCP, and machine-readable agent discovery."
 }

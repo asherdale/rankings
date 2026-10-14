@@ -1,4 +1,36 @@
 {
   "domain": "paypal.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T23:46:46Z",
+  "score": 6.2,
+  "judges": {
+    "claude": {
+      "model": "anthropic/claude-haiku-5.5",
+      "score": 6,
+      "roast": "Save smarter, says the homepage that scores 36 on mobile speed."
+    },
+    "gpt": {
+      "model": "openai/gpt-5-nano",
+      "score": 7,
+      "roast": "PayPal's landing page: a feature buffet, clarity left starving."
+    },
+    "gemini": {
+      "model": "google/gemini-2.5-flash-lite",
+      "score": 7,
+      "roast": "PayPal: Making payments smarter, just not on your phone."
+    },
+    "muse": {
+      "model": "meta/muse-glimmer-30b",
+      "score": 5,
+      "roast": "Pay smarter, please, your mobile site needs it most."
+    }
+  },
+  "mobile_speed": 36,
+  "desktop_speed": 79,
+  "accessibility": 95,
+  "seo": 92,
+  "agent_readiness": 64,
+  "blocks_automated_browsers": false,
+  "minutes": 9,
+  "agent_readiness_summary": "PayPal scores 64/100 (C), with strong discovery but weaknesses in access and usability, including missing OpenAPI documentation and agent-oriented features."
 }

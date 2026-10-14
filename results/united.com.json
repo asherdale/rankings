@@ -1,4 +1,35 @@
 {
   "domain": "united.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T23:43:19Z",
+  "score": 5.5,
+  "judges": {
+    "claude": {
+      "model": "anthropic/claude-haiku-5.5",
+      "score": 5,
+      "roast": "Phone visitors meet a sign-in form before they meet a single flight."
+    },
+    "gpt": {
+      "model": "openai/gpt-5-nano",
+      "score": 6,
+      "roast": "The booking form steals the hero, muting United\u2019s brand message."
+    },
+    "gemini": {
+      "model": "google/gemini-2.5-flash-lite",
+      "score": 7,
+      "roast": "United: Soaring high on SEO, but flight status can feel like a turbulence."
+    },
+    "muse": {
+      "model": "meta/muse-glimmer-30b",
+      "score": 4,
+      "roast": "Phone greets you with sign-in, not flight search."
+    }
+  },
+  "mobile_speed": 10,
+  "desktop_speed": 40,
+  "accessibility": 97,
+  "seo": 100,
+  "agent_readiness": null,
+  "blocks_automated_browsers": true,
+  "minutes": 5
 }
