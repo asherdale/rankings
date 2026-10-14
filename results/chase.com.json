@@ -1,4 +1,24 @@
 {
   "domain": "chase.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T20:24:50Z",
+  "composite": 74,
+  "roast": "Chase\u2019s homepage has so many ways to manage your money that even your money needs a map.",
+  "fix": "Make the primary next step unmistakable by reducing the competing product and promotional choices above the fold.",
+  "scores": {
+    "speed": 62,
+    "mobile": 36,
+    "accessibility": 100,
+    "seo": 92,
+    "agent_readiness": 50,
+    "clarity": 88,
+    "design": 87,
+    "copy": 75
+  },
+  "notes": {
+    "agent_readiness": "Chase scores 50/100 (C) for agent readiness: discovery is relatively strong, but access and usability are limited by the lack of agent-facing interfaces such as an MCP server and OpenAPI specification."
+  },
+  "model": "OpenAI GPT-5",
+  "blocks_automated_browsers": false,
+  "minutes": 5
 }
