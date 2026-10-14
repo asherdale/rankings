@@ -1,4 +1,24 @@
 {
   "domain": "openai.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T20:22:24Z",
+  "composite": 79,
+  "roast": "OpenAI\u2019s homepage asks \u201cWhat can I help with?\u201d and gives the question so much whitespace it has time to become existential.",
+  "fix": "Add one plain-language sentence that says what OpenAI is and points newcomers to the right starting place before the prompt.",
+  "scores": {
+    "speed": 70,
+    "mobile": 42,
+    "accessibility": 100,
+    "seo": 100,
+    "agent_readiness": 60,
+    "clarity": 85,
+    "design": 93,
+    "copy": 80
+  },
+  "notes": {
+    "agent_readiness": "Discovery is strong (15/16), but access (29/54) and usability (30/62) lag, especially on agent-facing WebMCP, MCP Apps, and machine-readable permissions."
+  },
+  "model": "OpenAI GPT-4o",
+  "blocks_automated_browsers": false,
+  "minutes": 3
 }
