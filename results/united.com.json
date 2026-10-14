@@ -1,4 +1,24 @@
 {
   "domain": "united.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T20:22:44Z",
+  "composite": 57,
+  "roast": "United's homepage lets you book a flight, but its mobile view first asks whether you'd like to become a login.",
+  "fix": "Make the mobile homepage open on the flight-search form and keep sign-in secondary.",
+  "scores": {
+    "speed": 33,
+    "mobile": 2,
+    "accessibility": 97,
+    "seo": 85,
+    "agent_readiness": 0,
+    "clarity": 86,
+    "design": 78,
+    "copy": 75
+  },
+  "notes": {
+    "agent_readiness": "Ora could not reach united.com, so no agent-readiness report was available."
+  },
+  "model": "OpenAI GPT-5",
+  "blocks_automated_browsers": true,
+  "minutes": 2
 }
