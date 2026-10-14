@@ -1,4 +1,24 @@
 {
   "domain": "marriott.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T21:57:04Z",
+  "composite": 66,
+  "roast": "Marriott turned its homepage into a hotel buffet: the booking form is the main course, and the deals keep arriving whether you asked or not.",
+  "fix": "Optimize and lazy-load the image-heavy promotional cards to speed up the mobile experience, where Lighthouse performance is only 29.",
+  "scores": {
+    "speed": 45,
+    "mobile": 29,
+    "accessibility": 97,
+    "seo": 77,
+    "agent_readiness": 25,
+    "clarity": 92,
+    "design": 88,
+    "copy": 79
+  },
+  "notes": {
+    "agent_readiness": "Ora rates Marriott 25/100 (F), citing missing MCP and OpenAPI support alongside weak agent-facing access and usability."
+  },
+  "model": "openai/gpt-6-luna",
+  "blocks_automated_browsers": true,
+  "minutes": 2
 }

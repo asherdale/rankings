@@ -1,24 +1,24 @@
 {
   "domain": "stripe.com",
   "status": "done",
-  "audited_at": "2026-10-14T20:21:34Z",
-  "composite": 81,
-  "roast": "Stripe's homepage is what happens when a payments company decides one headline should accept every use case.",
-  "fix": "Replace the broad hero statement with a concise promise and route visitors immediately to payments, billing, or banking.",
+  "audited_at": "2026-10-14T21:56:12Z",
+  "composite": 78,
+  "roast": "Stripe promises to take you from your first transaction to your billionth, and somehow makes the global economy look like it has a very good art director.",
+  "fix": "Replace the broad \u2018financial infrastructure\u2019 opener with a short, audience-specific route to payments, billing, or platform tools so visitors can find their product path immediately.",
   "scores": {
-    "speed": 63,
-    "mobile": 41,
+    "speed": 52,
+    "mobile": 38,
     "accessibility": 96,
     "seo": 92,
     "agent_readiness": 77,
-    "clarity": 94,
-    "design": 95,
-    "copy": 90
+    "clarity": 92,
+    "design": 94,
+    "copy": 80
   },
   "notes": {
-    "agent_readiness": "Stripe scores well on agent discovery and usability, but publishing an OpenAPI specification and machine-readable tools would make its capabilities easier for agents to use."
+    "agent_readiness": "Stripe scores 77/100 (B), with strong discovery but gaps in machine-readable API documentation and agent-facing capabilities."
   },
-  "model": "OpenAI ChatGPT",
+  "model": "openai/gpt-6-luna",
   "blocks_automated_browsers": false,
   "minutes": 2
 }
