@@ -1,4 +1,24 @@
 {
   "domain": "walgreens.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T20:24:46Z",
+  "composite": 69,
+  "roast": "Walgreens\u2019 homepage has so many offers that even the coupons are probably clipping each other.",
+  "fix": "Give the pharmacy and shopping shortcuts clear priority, then consolidate the competing sale banners\u2014especially on mobile.",
+  "scores": {
+    "speed": 51,
+    "mobile": 28,
+    "accessibility": 100,
+    "seo": 92,
+    "agent_readiness": 34,
+    "clarity": 86,
+    "design": 82,
+    "copy": 76
+  },
+  "notes": {
+    "agent_readiness": "Walgreens earns 34/100 (D): it is discoverable, but its agent access and usability remain limited."
+  },
+  "model": "OpenAI GPT-5",
+  "blocks_automated_browsers": false,
+  "minutes": 5
 }
