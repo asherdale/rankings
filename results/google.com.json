@@ -1,4 +1,24 @@
 {
   "domain": "google.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T20:20:44Z",
+  "composite": 80,
+  "roast": "Google\u2019s homepage has been reduced to a very polished essay about cookies, with the search box playing hide-and-seek behind the curtain.",
+  "fix": "Make the search field and a clear search action immediately accessible without requiring visitors to wade through a full-screen consent wall.",
+  "scores": {
+    "speed": 80,
+    "mobile": 97,
+    "accessibility": 96,
+    "seo": 92,
+    "agent_readiness": 52,
+    "clarity": 78,
+    "design": 84,
+    "copy": 62
+  },
+  "notes": {
+    "agent_readiness": "Google scores 52/100 (C), with discovery 13/17, access 23/53, usability 24/53, and no payments layer."
+  },
+  "model": "OpenAI GPT-4.1",
+  "blocks_automated_browsers": false,
+  "minutes": 1
 }
