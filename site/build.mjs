@@ -72,7 +72,7 @@ function nav(up) {
     ? `<a href="${esc(config.repo_url)}/blob/main/RUBRIC.md">Methodology</a><a href="${esc(config.repo_url)}">GitHub</a>`
     : ''
   return `<header class="nav"><div class="wrap">
-<a class="logo" href="${up}"><span class="mark">R</span>Rankings<span class="by">by Omnara</span></a>
+<a class="logo" href="${up}"><span class="mark">${esc(config.title[0])}</span>${esc(config.title)}<span class="by">built on Omnara</span></a>
 <nav><a href="${up}#board">Leaderboard</a>${repo}</nav>
 </div></header>`
 }
@@ -104,7 +104,7 @@ ${nav(up)}
 <main class="wrap">
 ${body}
 </main>
-<footer><div class="wrap">Scored by AI agents running on <a href="https://www.omnara.com">Omnara</a>, with data from <a href="https://pagespeed.web.dev">PageSpeed Insights</a> and <a href="https://ora.ai">Ora</a>.</div></footer>
+<footer><div class="wrap">A side project by <a href="https://x.com/${esc(config.x_handle)}">@${esc(config.x_handle)}</a>. Scored by AI agents running on <a href="https://www.omnara.com">Omnara</a>, with <a href="https://developer.chrome.com/docs/lighthouse">Lighthouse</a> and <a href="https://ora.ai">Ora</a>.</div></footer>
 </body>
 </html>
 `
@@ -258,7 +258,7 @@ ${note ? `<p class="row-note">${esc(note)}</p>` : ''}
   const receipt = [
     Number.isInteger(site.minutes) ? `Scored in ${site.minutes} min on its own machine` : '',
     site.model ? `reviewed by ${esc(prettyModel(site.model))}` : '',
-    site.blocks_automated_browsers ? 'screenshots from PageSpeed Insights because the site blocks automated browsers' : '',
+    site.blocks_automated_browsers ? 'screenshots from Lighthouse because the site blocks automated browsers' : '',
   ]
     .filter(Boolean)
     .join(' · ')

@@ -1,6 +1,6 @@
 ---
 name: deploy-rankings-agents
-description: Deploy or update the Website Rankings agents on Omnara, which give every website its own machine and AI agent, score it with PageSpeed Insights, Ora, and an AI review, and commit the results to this repository. Use when the user asks to deploy, set up, update, run, or remove the rankings agents.
+description: Deploy or update the Rate My Homepage agents on Omnara, which give every website its own machine and AI agent, score it with Lighthouse, Ora, and an AI review, and commit the results to this repository. Use when the user asks to deploy, set up, update, run, or remove the rankings agents.
 ---
 
 # Deploy the rankings agents
@@ -60,8 +60,9 @@ Wait until the user says it's done. `GITHUB_INTEGRATION` is `rankings-github`.
 
 ## 4. Store a PageSpeed Insights API key
 
-The site agents call Google's PageSpeed Insights API, which needs a free API
-key. The user creates one in the
+Site agents measure each site with Lighthouse on its own machine. For sites
+that block that, they fall back to Google's PageSpeed Insights API, which needs
+a free API key. The user creates one in the
 [Google Cloud console](https://console.cloud.google.com/apis/credentials)
 after enabling the PageSpeed Insights API, and can restrict the key to that
 API. If a secret named `rankings-psi-key` exists

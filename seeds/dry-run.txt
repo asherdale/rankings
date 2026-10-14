@@ -17,4 +17,4 @@ cvs.com
 walgreens.com
 nike.com
 verizon.com
-tmobile.com
+t-mobile.com

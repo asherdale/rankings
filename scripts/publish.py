@@ -98,7 +98,7 @@ def main():
     git("add", "-A", "--", "results", "cards", "shots")
     pushed = False
     if git("diff", "--cached", "--quiet", check=False).returncode:
-        git("commit", "-m", f"Rank {len(published)} site{'s' if len(published) != 1 else ''}" if published else "Queue sites")
+        git("commit", "-m", f"Rank {len(published)} site{'s' if len(published) != 1 else ''}" if published else "Update queue")
         if git("push", check=False).returncode:
             git("pull", "--rebase")
             git("push")

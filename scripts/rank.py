@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 import argparse
 import base64
+import glob
 import html
 import io
 import json
 import os
+import random
 import re
 import shutil
+import subprocess
 import sys
 import tarfile
+import tempfile
 import time
 import urllib.error
 import urllib.parse
@@ -17,11 +21,10 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
-PSI = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed"
 CATEGORIES = ("speed", "mobile", "accessibility", "seo", "agent_readiness", "clarity", "design", "copy")
 USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/140.0.0.0 Safari/537.36 OmnaraRankings/1.0 (+https://rankings.omnara.com)"
+    "Chrome/140.0.0.0 Safari/537.36 RateMyHomepage/1.0 (+https://ratemyhomepage.pages.dev)"
 )
 BLOCK_MARKERS = (
     "access denied",
@@ -42,10 +45,6 @@ TONES = {"A+": "#059669", "A": "#16a34a", "B": "#65a30d", "C": "#ca8a04", "D": "
 DOMAIN = re.compile(r"^[a-z0-9-]+(\.[a-z0-9-]+)+$")
 
 
-class QuotaError(Exception):
-    pass
-
-
 def fail(message):
     sys.exit(f"rank.py: {message}")
 
@@ -63,35 +62,111 @@ def resolve(domain):
     return f"https://{domain}"
 
 
-def pagespeed(url, strategy):
-    query = [("url", url), ("strategy", strategy)] + [("category", c) for c in ("PERFORMANCE", "ACCESSIBILITY", "SEO")]
-    if os.environ.get("PSI_API_KEY"):
-        query.append(("key", os.environ["PSI_API_KEY"]))
-    for attempt in range(6):
+LIGHTHOUSE = "lighthouse@13.5.0"
+PSI = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed"
+
+
+def find_chrome():
+    if os.environ.get("CHROME_PATH"):
+        return os.environ["CHROME_PATH"]
+    roots = [os.environ.get("PLAYWRIGHT_BROWSERS_PATH"), "~/.cache/ms-playwright", "~/Library/Caches/ms-playwright", "/ms-playwright"]
+    names = ("chrome-headless-shell", "headless_shell", "chrome", "Chromium.app/Contents/MacOS/Chromium")
+    for root in filter(None, roots):
+        for name in names:
+            hits = sorted(glob.glob(os.path.join(os.path.expanduser(root), "chromium*", "*", name)))
+            if hits:
+                return hits[-1]
+    return None
+
+
+def lighthouse(url, preset, chrome):
+    with tempfile.TemporaryDirectory() as tmp:
+        path = os.path.join(tmp, "report.json")
+        command = ["lighthouse"] if shutil.which("lighthouse") else ["npx", "-y", LIGHTHOUSE]
+        command += [
+            url, "--quiet", "--output=json", f"--output-path={path}",
+            "--only-categories=performance,accessibility,seo", "--max-wait-for-load=30000",
+            "--chrome-flags=--headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage",
+        ]
+        if preset == "desktop":
+            command.append("--preset=desktop")
+        env = dict(os.environ, CHROME_PATH=chrome) if chrome else dict(os.environ)
+        proc = subprocess.run(command, env=env, capture_output=True, text=True, timeout=150)
+        if not os.path.exists(path):
+            raise RuntimeError((proc.stderr or proc.stdout).strip()[-200:] or "Lighthouse produced no report")
+        report = json.load(open(path))
+    return parse(report, preset)
+
+
+def pagespeed(url, preset):
+    query = [("url", url), ("strategy", preset), ("key", os.environ["PSI_API_KEY"])]
+    query += [("category", c) for c in ("PERFORMANCE", "ACCESSIBILITY", "SEO")]
+    for attempt in range(5):
         try:
-            with urllib.request.urlopen(f"{PSI}?{urllib.parse.urlencode(query)}", timeout=180) as resp:
-                report = json.load(resp)["lighthouseResult"]
-            break
+            with urllib.request.urlopen(f"{PSI}?{urllib.parse.urlencode(query)}", timeout=120) as resp:
+                return parse(json.load(resp)["lighthouseResult"], preset)
         except urllib.error.HTTPError as exc:
-            if exc.code in (401, 403):
-                raise QuotaError(f"PageSpeed rejected the API key ({exc.code})")
-            if exc.code == 429 and attempt < 5:
-                time.sleep(20 * (attempt + 1))
-                continue
-            if exc.code == 429:
-                raise QuotaError("PageSpeed quota exhausted")
-            raise RuntimeError(f"PageSpeed HTTP {exc.code}")
+            if exc.code != 429 or attempt == 4:
+                raise RuntimeError(f"PageSpeed HTTP {exc.code}")
+            time.sleep(random.uniform(10, 30))
+
+
+def parse(report, preset):
     if report.get("runtimeError", {}).get("code"):
-        raise RuntimeError(report["runtimeError"].get("message", report["runtimeError"]["code"]))
+        raise RuntimeError(report["runtimeError"].get("message", report["runtimeError"]["code"])[:200])
     if report.get("audits", {}).get("http-status-code", {}).get("score") == 0:
         raise RuntimeError("the page returned an error status")
     scores = {c: report["categories"].get(c, {}).get("score") for c in ("performance", "accessibility", "seo")}
     if any(score is None for score in scores.values()):
         raise RuntimeError("some categories could not be scored")
     shots = {"final": report["audits"].get("final-screenshot", {}).get("details", {}).get("data")}
-    if strategy == "desktop":
+    if preset == "desktop":
         shots["full"] = (report.get("fullPageScreenshot") or {}).get("screenshot", {}).get("data")
     return {c: round(s * 100) for c, s in scores.items()}, shots
+
+
+def measure(urls, preset, chrome, install):
+    if install:
+        install.wait(timeout=180)
+    attempts = [(lighthouse, (urls[0], preset, chrome))]
+    if os.environ.get("PSI_API_KEY"):
+        attempts += [(pagespeed, (url, preset)) for url in urls[:2]]
+    last = None
+    for run, run_args in attempts:
+        try:
+            return run(*run_args)
+        except Exception as exc:
+            last = exc
+    raise last
+
+
+def install_lighthouse():
+    if shutil.which("lighthouse"):
+        return None
+    return subprocess.Popen(["npm", "install", "-g", "--silent", LIGHTHOUSE],
+                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def browse_page(url, out):
+    from playwright.sync_api import sync_playwright
+
+    with sync_playwright() as p:
+        return browse(p, url, out)
+
+
+CONSENT = re.compile(r"^\s*(accept all( cookies)?|accept( cookies)?|allow all( cookies)?|i agree|agree( and continue)?|got it|ok(ay)?)\s*$", re.I)
+
+
+def dismiss_consent(page):
+    for frame in page.frames:
+        try:
+            button = frame.get_by_role("button", name=CONSENT)
+            if button.count():
+                button.first.click(timeout=2000)
+                page.wait_for_timeout(1500)
+                return
+        except Exception:
+            continue
 
 
 def data_url(path):
@@ -114,6 +189,7 @@ def browse(p, url, out):
         page = browser.new_context(viewport={"width": 1440, "height": 900}, user_agent=USER_AGENT, locale="en-US").new_page()
         resp = page.goto(url, wait_until="domcontentloaded", timeout=45000)
         page.wait_for_timeout(4000)
+        dismiss_consent(page)
         info = {
             "status": resp.status if resp else None,
             "title": page.title(),
@@ -132,10 +208,12 @@ def browse(p, url, out):
                                     user_agent=USER_AGENT, locale="en-US").new_page()
         small.goto(page.url, wait_until="domcontentloaded", timeout=45000)
         small.wait_for_timeout(3000)
+        dismiss_consent(small)
         small.screenshot(path=str(out / "thumb.jpg"), type="jpeg", quality=80)
         mobile = browser.new_context(**{**p.devices["iPhone 13"], "user_agent": USER_AGENT}, locale="en-US").new_page()
         mobile.goto(page.url, wait_until="domcontentloaded", timeout=45000)
         mobile.wait_for_timeout(4000)
+        dismiss_consent(mobile)
         mobile.screenshot(path=str(out / "mobile.jpg"), type="jpeg", quality=80)
         return {**info, "blocked": False}
     finally:
@@ -173,23 +251,30 @@ def collect(args):
     out.mkdir(parents=True)
     domain = args.domain
     url = resolve(domain)
+    urls = list(dict.fromkeys([url, f"https://{domain}", f"https://www.{domain}"]))
     result = {"domain": domain, "url": url, "started_at": time.time()}
-    with ThreadPoolExecutor(max_workers=2) as pool, sync_playwright() as p:
-        mobile = pool.submit(pagespeed, url, "mobile")
-        desktop = pool.submit(pagespeed, url, "desktop")
+    install = install_lighthouse()
+    chrome = find_chrome()
+    if not chrome:
+        with sync_playwright() as p:
+            if os.path.exists(p.chromium.executable_path):
+                chrome = p.chromium.executable_path
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        mobile = pool.submit(measure, urls, "mobile", chrome, install)
+        desktop = pool.submit(measure, urls, "desktop", chrome, install)
+        browsed = pool.submit(browse_page, url, out)
         try:
-            page = browse(p, url, out)
+            page = browsed.result()
         except Exception as exc:
             page = {"blocked": True, "error": str(exc).splitlines()[0][:200]}
         try:
             (mobile_scores, mobile_shots), (desktop_scores, desktop_shots) = mobile.result(), desktop.result()
-        except QuotaError as exc:
-            fail(f"PageSpeed API error: {exc}")
         except Exception as exc:
-            result.update(skip=True, reason=f"PageSpeed couldn't load the site: {str(exc)[:200]}")
+            result.update(skip=True, reason=f"Lighthouse couldn't load the site: {str(exc)[:200]}")
             (out / "collect.json").write_text(json.dumps(result, indent=2))
             print(json.dumps({k: result[k] for k in ("domain", "skip", "reason")}, indent=2))
             return
+    with sync_playwright() as p:
         if page["blocked"]:
             page.update(title="", description="", headings=[], text="")
             for name in ("desktop.jpg", "full.jpg", "thumb.jpg", "mobile.jpg"):
@@ -200,7 +285,9 @@ def collect(args):
             if (out / "desktop.jpg").exists():
                 shutil.copy(out / "desktop.jpg", out / "thumb.jpg")
         shots = {name: next(out.glob(f"{name}.*"), None) for name in ("desktop", "mobile", "full")}
-        if not all(shots.values()):
+        shots["mobile"] = shots["mobile"] or shots["desktop"]
+        shots["full"] = shots["full"] or shots["desktop"]
+        if not shots["desktop"]:
             result.update(skip=True, reason="no screenshots were available")
             (out / "collect.json").write_text(json.dumps(result, indent=2))
             print(json.dumps({k: result[k] for k in ("domain", "skip", "reason")}, indent=2))
@@ -208,7 +295,7 @@ def collect(args):
         render(p, SHEET.format(**{k: data_url(v) for k, v in shots.items()}), out / "sheet.jpg", 2000, full_page=True)
 
     result.update(
-        pagespeed={"mobile": mobile_scores, "desktop": desktop_scores},
+        lighthouse={"mobile": mobile_scores, "desktop": desktop_scores},
         blocks_automated_browsers=page["blocked"],
         title=page.get("title") or "",
         description=page.get("description") or "",
@@ -240,7 +327,7 @@ body {{ width: 1200px; height: 630px; background: #fff; font-family: Geist, Inte
 <div class="left">
 <div class="site"><img src="https://www.google.com/s2/favicons?domain={domain}&sz=128"><div class="domain">{domain}</div></div>
 <div class="roast">“{roast}”</div>
-<div class="score"><div class="num">{composite}</div><div><div class="grade">{letter}</div></div><div class="brand">Website Rankings<br>scored by AI agents on Omnara</div></div>
+<div class="score"><div class="num">{composite}</div><div><div class="grade">{letter}</div></div><div class="brand">ratemyhomepage.pages.dev<br>scored by AI agents on Omnara</div></div>
 </div>
 <div class="right"><div class="shot"></div></div>
 </div></body></html>"""
@@ -278,12 +365,12 @@ def finish(args):
     except json.JSONDecodeError as exc:
         fail(f"the review on stdin isn't valid JSON ({exc})")
 
-    psi = collected["pagespeed"]
+    lh = collected["lighthouse"]
     scores = {
-        "speed": score(psi["desktop"]["performance"], "speed"),
-        "mobile": score(psi["mobile"]["performance"], "mobile"),
-        "accessibility": score(psi["mobile"]["accessibility"], "accessibility"),
-        "seo": score(psi["mobile"]["seo"], "seo"),
+        "speed": score(lh["desktop"]["performance"], "speed"),
+        "mobile": score(lh["mobile"]["performance"], "mobile"),
+        "accessibility": score(lh["mobile"]["accessibility"], "accessibility"),
+        "seo": score(lh["mobile"]["seo"], "seo"),
         "agent_readiness": score(review.get("ora_score"), "ora_score"),
         "clarity": score(review.get("clarity"), "clarity"),
         "design": score(review.get("design"), "design"),
@@ -328,9 +415,9 @@ def finish(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Rank one website for Website Rankings.")
+    parser = argparse.ArgumentParser(description="Rank one website for Rate My Homepage.")
     sub = parser.add_subparsers(dest="command", required=True)
-    one = sub.add_parser("collect", help="get PageSpeed scores, screenshots, and page text")
+    one = sub.add_parser("collect", help="get Lighthouse scores, screenshots, and page text")
     two = sub.add_parser("finish", help="score the site from the review on stdin and bundle the result")
     for command in (one, two):
         command.add_argument("domain")

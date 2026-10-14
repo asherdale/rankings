@@ -66,7 +66,7 @@ h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
 
 .nav { border-bottom: 1px solid var(--line); }
 .nav .wrap { display: flex; justify-content: space-between; align-items: center; height: 64px; }
-.logo { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 600; white-space: nowrap; }
 .mark { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 700; }
 .by { color: var(--muted); font-weight: 400; font-size: 14px; }
 .nav nav { display: flex; gap: 24px; font-size: 14px; color: var(--soft); }
@@ -181,4 +181,9 @@ footer a { color: var(--ink); text-decoration: underline; text-underline-offset:
   .summary { flex-direction: column; align-items: flex-start; }
   .split { grid-template-columns: 1fr; }
   .report-head { flex-direction: column; align-items: flex-start; }
+}
+
+@media (max-width: 560px) {
+  .by, .nav nav a:first-child { display: none; }
+  .nav nav { gap: 16px; }
 }

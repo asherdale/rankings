@@ -1,8 +1,8 @@
-# Website Rankings
+# Rate My Homepage
 
 AI agents score websites on eight things, from page speed to how well AI
 agents can use them, and rank them at
-[rankings.omnara.com](https://rankings.omnara.com).
+[ratemyhomepage.pages.dev](https://ratemyhomepage.pages.dev).
 
 ## How it works
 
@@ -15,8 +15,8 @@ do the work:
   [`scripts/publish.py`](scripts/publish.py) checks them and pushes them
   here.
 - **Site agents** ([`site.yaml`](agents/site.yaml)), one per website, run
-  [`scripts/rank.py`](scripts/rank.py) to get PageSpeed Insights scores and
-  screenshots from a real browser, ask [Ora](https://ora.ai)'s MCP server for
+  [`scripts/rank.py`](scripts/rank.py) to measure the site with Lighthouse and
+  take screenshots in a real browser, ask [Ora](https://ora.ai)'s MCP server for
   the site's agent-readiness score, and review the site. They read untrusted
   web pages, so they hold no credentials.
 
@@ -35,7 +35,8 @@ and say:
 Follow SKILL.md to deploy the rankings agents.
 ```
 
-It signs you in to Omnara, stores a PageSpeed Insights API key, connects
+It signs you in to Omnara, stores a PageSpeed Insights API key for sites that
+block Lighthouse, connects
 GitHub so the main agent can push results, creates both profiles, and ranks a
 first batch.
 

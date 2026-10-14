@@ -6,10 +6,10 @@ letter grade.
 
 | Category | How it's measured |
 | --- | --- |
-| Speed | [PageSpeed Insights](https://pagespeed.web.dev) performance score on desktop. |
-| Mobile | PageSpeed Insights performance score on a phone. |
-| Accessibility | PageSpeed Insights accessibility score on a phone. |
-| SEO | PageSpeed Insights SEO score on a phone. |
+| Speed | [Lighthouse](https://developer.chrome.com/docs/lighthouse) performance score on desktop. |
+| Mobile | Lighthouse performance score on a simulated phone. |
+| Accessibility | Lighthouse accessibility score on a phone. |
+| SEO | Lighthouse SEO score on a phone. |
 | Agent readiness | [Ora](https://ora.ai)'s agent-readiness score: how well AI agents can find, read, use, and pay the site. |
 | Clarity | An AI reviewer looks at the homepage and scores how quickly a stranger understands what the company does and what to do next. |
 | Design | The reviewer scores the desktop and phone screenshots. |
@@ -35,10 +35,13 @@ Every review comes from the same model with the same instructions, scored agains
 The reviewer also writes a one-sentence roast and the one fix that would help
 most.
 
-Each site is visited by an automated browser that identifies itself as
-`OmnaraRankings`. If the site blocks it, the review uses PageSpeed Insights'
-screenshots instead, and the site's page says so. Sites that PageSpeed
-Insights can't load aren't listed.
+Each site is measured by Lighthouse on its own machine and visited by an
+automated browser that identifies itself as `RateMyHomepage`. If a site blocks
+the browser, the review uses Lighthouse's screenshots instead, and the site's
+page says so. If it blocks Lighthouse, Google's
+[PageSpeed Insights](https://pagespeed.web.dev), which runs the same
+Lighthouse from Google's servers, measures it instead. Sites that neither can
+load aren't listed.
 
 These scores come from automated tools and an AI model. They're opinions, not
 facts, and a rerun can move a score by a few points.

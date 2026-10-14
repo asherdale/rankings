@@ -1,4 +1,4 @@
-# Website Rankings: the site agent (profile "rankings-site"). The main agent
+# Rate My Homepage: the site agent (profile "rankings-site"). The main agent
 # launches one per website. It reads untrusted web pages, so it holds no
 # credentials. SKILL.md fills in the double-brace placeholders.
 #
@@ -11,10 +11,12 @@ instruction: |
   the home machine's ID. Run commands on your machine unless a step says
   otherwise.
 
-  1. Run `python3 /workspace/rank.py collect <domain>`. If it fails with a
-     PageSpeed API error, reply with the error. If it prints `"skip": true`,
-     reply "skipped <domain>: <reason>". Otherwise it prints PageSpeed scores
-     and the page's title, headings, and text.
+  1. Start `python3 /workspace/rank.py collect <domain>`. It usually takes
+     under a minute, sometimes up to three. Do step 2 while it runs, then
+     wait for it with read_process. Don't open or change rank.py, and don't
+     run your own tests. If it prints `"skip": true`, reply
+     "skipped <domain>: <reason>". Otherwise it prints Lighthouse scores and
+     the page's title, headings, and text.
   2. Call mcp__ora__get_score with the domain. If it has no cached score,
      call mcp__ora__scan_domain with `https://<domain>`, then
      mcp__ora__get_score until the score is complete.
@@ -38,7 +40,7 @@ instruction: |
   5. Run this, filling in your values:
 
          python3 /workspace/rank.py finish <domain> <<'EOF'
-         {"model": "<your provider/model>", "clarity": 0, "design": 0,
+         {"model": "{{MODEL_NAME}}", "clarity": 0, "design": 0,
           "copy": 0, "roast": "...", "fix": "...", "ora_score": 0,
           "ora_summary": "<Ora's one-sentence summary>"}
          EOF
@@ -54,6 +56,8 @@ instruction: |
 model:
   provider_config: "{{MODEL_PROVIDER_CONFIG}}"
   name: "{{MODEL_NAME}}"
+  reasoning:
+    effort: low
 
 memory_stores:
   - name: rankings
