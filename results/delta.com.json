@@ -1,4 +1,24 @@
 {
   "domain": "delta.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T20:21:32Z",
+  "composite": 66,
+  "roast": "Delta\u2019s homepage gets you ready to fly\u2014after navigating a cockpit\u2019s worth of tabs and a cookie banner asking for its own boarding pass.",
+  "fix": "On mobile, keep cookie consent from covering the flight-search flow and make booking the unmistakable first action.",
+  "scores": {
+    "speed": 38,
+    "mobile": 25,
+    "accessibility": 100,
+    "seo": 100,
+    "agent_readiness": 24,
+    "clarity": 90,
+    "design": 83,
+    "copy": 68
+  },
+  "notes": {
+    "agent_readiness": "Ora rates Delta 24/100 (F): discovery is strong, but agent access and usability are weak, with no public API, WebMCP, or MCP server detected."
+  },
+  "model": "OpenAI GPT-5",
+  "blocks_automated_browsers": true,
+  "minutes": 2
 }

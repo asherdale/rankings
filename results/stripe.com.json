@@ -1,4 +1,24 @@
 {
   "domain": "stripe.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-14T20:21:34Z",
+  "composite": 81,
+  "roast": "Stripe's homepage is what happens when a payments company decides one headline should accept every use case.",
+  "fix": "Replace the broad hero statement with a concise promise and route visitors immediately to payments, billing, or banking.",
+  "scores": {
+    "speed": 63,
+    "mobile": 41,
+    "accessibility": 96,
+    "seo": 92,
+    "agent_readiness": 77,
+    "clarity": 94,
+    "design": 95,
+    "copy": 90
+  },
+  "notes": {
+    "agent_readiness": "Stripe scores well on agent discovery and usability, but publishing an OpenAPI specification and machine-readable tools would make its capabilities easier for agents to use."
+  },
+  "model": "OpenAI ChatGPT",
+  "blocks_automated_browsers": false,
+  "minutes": 2
 }
