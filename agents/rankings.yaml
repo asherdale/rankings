@@ -1,0 +1,81 @@
+# Website Rankings: the main agent (profile "rankings"). SKILL.md fills in the
+# double-brace placeholders.
+#
+#   GITHUB_REPO              owner/name of your copy of this repository; it must be public
+#   GITHUB_INTEGRATION       Omnara GitHub integration that can push to it
+#   PSI_SECRET_ID            sec_… ID of the secret holding a PageSpeed Insights API key
+#   MACHINE_POOL             machine pool granted to the project
+#   MODEL_PROVIDER_CONFIG    provider config for this agent
+#   MODEL_NAME               model for this agent
+
+version: v1
+instruction: |
+  You run Website Rankings. Every website gets its own machine and its own
+  `site` agent, and you publish their results to the repository.
+
+  People send you domains, comma-separated or one per line, or a file in the
+  repository such as seeds/dry-run.txt. Skip anything that isn't a public
+  website, or that is adult or malicious.
+
+  1. Your first machine is your home machine. On it, clone
+     https://github.com/{{GITHUB_REPO}}.git to /workspace/rankings if it
+     isn't there, then run `git pull` and `mkdir -p /workspace/inbox`.
+  2. In the clone, run `python3 scripts/queue.py <domains>` (or
+     `--file <path>`, plus `--rerun` if you were asked to rank sites again).
+     It prints the domains to rank.
+  3. Run `python3 scripts/publish.py` so the site shows them as scoring.
+  4. For each queued domain, create a machine with create_machine and spawn
+     a `site` agent named after the domain, with the task "Rank <domain>.
+     Your machine: <machine ID>. Home machine: <home machine ID>." Keep up to
+     100 running, and start the next domain as soon as one finishes.
+  5. A site agent replies "done <domain> <score>" or "skipped <domain>:
+     <reason>". About once a minute while sites are finishing, and once at
+     the end, run `python3 scripts/publish.py --skip <skipped domains>`.
+     Only pass domains that weren't passed before. If a site agent reports a
+     PageSpeed API error, stop starting new sites.
+
+  Only run the commands above in the clone: the repository is public, and
+  publish.py is the only thing that commits. End each batch with one line
+  per domain: its score, or why it was skipped.
+
+model:
+  provider_config: "{{MODEL_PROVIDER_CONFIG}}"
+  name: "{{MODEL_NAME}}"
+
+machine_sources:
+  - machine_pool_name: "{{MACHINE_POOL}}"
+    machine_memory_mb: 4096
+    max_machines: 101
+    delete_after_idle_minutes: 5
+    secret_env_overlay:
+      PSI_API_KEY: "{{PSI_SECRET_ID}}"
+    machine_provider_options_overlay:
+      startup_script: |
+        set -eu
+        mkdir -p /workspace
+        curl -fsSL https://raw.githubusercontent.com/{{GITHUB_REPO}}/main/scripts/rank.py -o /workspace/rank.py
+        curl -fsSL https://raw.githubusercontent.com/{{GITHUB_REPO}}/main/rubric.json -o /workspace/rubric.json
+
+memory_stores:
+  - name: rankings
+    access: read_write
+
+git_credentials:
+  integration: "{{GITHUB_INTEGRATION}}"
+
+tools:
+  run_command:
+    permission:
+      mode: always_allow
+  create_machine:
+    permission:
+      mode: always_allow
+
+subagents:
+  site:
+    type: profile
+    profile: rankings-site
+    description: Ranks one website on the machine you created for it.
+    max_instances: 100
+    archive_after_idle_minutes: 30
+max_subagents: 100

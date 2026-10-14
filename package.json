@@ -1,0 +1,10 @@
+{
+  "name": "omnara-rankings",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node site/build.mjs",
+    "preview": "node site/build.mjs && npx -y serve dist",
+    "stats": "node site/stats.mjs"
+  }
+}
