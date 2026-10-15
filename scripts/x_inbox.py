@@ -13,7 +13,8 @@ from enqueue import normalize
 ROOT = Path(__file__).resolve().parent.parent
 STATE = Path("/workspace/x_inbox.json")
 SEARCH = "https://api.x.com/2/tweets/search/recent"
-IGNORED_HOSTS = ("x.com", "twitter.com", "t.co", "ratemyhomepage.pages.dev")
+POST_LINK = re.compile(r"^https?://(?:www\.)?(?:x|twitter)\.com/\w+/status/\d+", re.I)
+SHORT_LINK = re.compile(r"^https?://t\.co/\w+", re.I)
 TOKEN = re.compile(r"(?<![@\w])(?:https?://)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:/\S*)?", re.I)
 
 
@@ -50,11 +51,11 @@ def search(post, since):
 
 
 def domain_of(reply):
-    candidates = [u.get("expanded_url", "") for u in reply.get("entities", {}).get("urls", [])]
+    candidates = [u.get("expanded_url", "") for u in reply.get("entities", {}).get("urls", []) if "media_key" not in u]
     candidates += TOKEN.findall(reply.get("text", ""))
     for candidate in candidates:
         domain = normalize(candidate)
-        if domain and not domain.endswith(IGNORED_HOSTS):
+        if domain and not POST_LINK.match(candidate) and not SHORT_LINK.match(candidate):
             return domain
     return None
 
