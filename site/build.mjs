@@ -250,6 +250,7 @@ if (table) {
     title: config.title,
     description: config.tagline,
     path: '/',
+    image: '/og.jpg',
     depth: 0,
     body,
     refresh: pending.length > 0,
@@ -374,6 +375,7 @@ ${steps}
     title: `How it works · ${config.title}`,
     description: 'Every homepage here is rated by AI agents running on Omnara: a cron, a host agent, a site agent per website, and four judges.',
     path: '/how/',
+    image: '/og.jpg',
     depth: 1,
     body,
     backdrop: backdrop(),
@@ -384,7 +386,7 @@ const { sites, pending } = loadSites()
 rmSync(dist, { recursive: true, force: true })
 mkdirSync(join(dist, 'shots'), { recursive: true })
 mkdirSync(join(dist, 'cards'), { recursive: true })
-for (const file of ['style.css', 'shader.js', 'favicon.svg']) copyFileSync(join(root, 'site', file), join(dist, file))
+for (const file of ['style.css', 'shader.js', 'favicon.svg', 'og.jpg']) copyFileSync(join(root, 'site', file), join(dist, file))
 writeFileSync(join(dist, 'index.html'), indexPage(sites, pending))
 mkdirSync(join(dist, 'how'), { recursive: true })
 writeFileSync(join(dist, 'how', 'index.html'), howPage(sites))
