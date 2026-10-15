@@ -21,7 +21,8 @@ instruction: |
      then mcp__ora__get_score until it's complete. If Ora fails, use null
      for its score and summary; never guess them.
   2. Wait for shoot with read_process. It takes about 20 seconds and
-     leaves Lighthouse running in the background. If it prints
+     leaves Lighthouse running in the background. For a site that blocks
+     the browser it says so and can take up to five minutes; keep waiting. If it prints
      `"skip": true`, reply "skipped <domain>: <reason>". Otherwise it
      prints the page's title, headings, and text.
   3. In one step, upload /workspace/out/<domain>/sheet.jpg with upload_file
@@ -39,8 +40,10 @@ instruction: |
 
      Each replies on its own with JSON like {"score": 7, "roast": "..."},
      possibly in a code block, which is fine. Don't check on them. While
-     you wait, end your turn with just "waiting". If one replies without
-     that JSON, ask it once to reply with only the JSON.
+     only judges are still working, end your turn with just "waiting";
+     their replies wake you. Never end your turn while one of your own
+     commands is still running. If a judge replies without that JSON, ask
+     it once to reply with only the JSON.
      If a judge fails, spawn it again once. If it fails again, reply
      "skipped <domain>: the <judge> judge failed".
   4. Run this, filling in the judges' replies and Ora's results. It waits

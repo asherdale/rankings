@@ -302,6 +302,7 @@ def shoot(args):
         page = {"blocked": True, "error": str(exc).splitlines()[0][:200]}
     with sync_playwright() as p:
         if page["blocked"]:
+            print("The site blocks the browser; waiting for Lighthouse's screenshots, which can take a few minutes.", flush=True)
             page.update(title="", description="", headings=[], text="")
             for name in ("desktop.jpg", "full.jpg", "thumb.jpg", "mobile.jpg"):
                 (out / name).unlink(missing_ok=True)
