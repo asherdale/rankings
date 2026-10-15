@@ -3,6 +3,7 @@ import argparse
 import ipaddress
 import json
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -46,7 +47,8 @@ def main():
         if domain not in queued:
             queued.append(domain)
             if existing.get("status") != "done":
-                path.write_text(json.dumps({"domain": domain, "status": "scoring"}, indent=2) + "\n")
+                queued_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                path.write_text(json.dumps({"domain": domain, "status": "scoring", "queued_at": queued_at}, indent=2) + "\n")
     print(json.dumps({"queued": queued, "already_ranked": done, "rejected": rejected}, indent=2))
 
 

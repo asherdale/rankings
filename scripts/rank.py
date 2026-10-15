@@ -37,6 +37,10 @@ BLOCK_MARKERS = (
     "request blocked",
     "pardon our interruption",
     "captcha",
+    "press and hold",
+    "press & hold",
+    "quick verification",
+    "unusual traffic",
 )
 TONES = {"A+": "#059669", "A": "#16a34a", "B": "#65a30d", "C": "#ca8a04", "D": "#ea580c", "F": "#dc2626"}
 DOMAIN = re.compile(r"^[a-z0-9-]+(\.[a-z0-9-]+)+$")

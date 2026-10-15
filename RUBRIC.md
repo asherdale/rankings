@@ -53,8 +53,9 @@ score.
 
 Each ranked site has a result at `results/<domain>.json`, a homepage
 screenshot at `shots/<domain>.jpg`, and a share card at `cards/<domain>.jpg`.
-While a site is being scored, its result is just `domain` and
-`"status": "scoring"`.
+While a site is being scored, its result is just `domain`,
+`"status": "scoring"`, and `queued_at`. A placeholder older than 20 minutes is
+dropped.
 
 ```json
 {

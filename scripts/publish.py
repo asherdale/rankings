@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -15,6 +16,14 @@ MEASUREMENTS = ("mobile_speed", "desktop_speed", "accessibility", "seo", "agent_
 KEYS = {"domain", "status", "audited_at", "score", "judges", *MEASUREMENTS, "agent_readiness_summary",
         "blocks_automated_browsers", "minutes"}
 JPEG = b"\xff\xd8\xff"
+STALE = timedelta(minutes=20)
+
+
+def is_stale(placeholder):
+    queued = placeholder.get("queued_at")
+    if not queued:
+        return True
+    return datetime.now(timezone.utc) - datetime.fromisoformat(queued.replace("Z", "+00:00")) > STALE
 
 
 def is_int(value, low, high):
@@ -102,6 +111,10 @@ def main():
     for domain in args.skip:
         path = ROOT / "results" / f"{domain}.json"
         if DOMAIN.match(domain) and path.exists() and json.loads(path.read_text()).get("status") == "scoring":
+            path.unlink()
+    for path in (ROOT / "results").glob("*.json"):
+        placeholder = json.loads(path.read_text())
+        if placeholder.get("status") == "scoring" and is_stale(placeholder):
             path.unlink()
 
     replies = []

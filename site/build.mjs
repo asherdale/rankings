@@ -49,7 +49,7 @@ function loadSites() {
       const site = JSON.parse(readFileSync(join(dir, file), 'utf8'))
       if (!DOMAIN.test(site.domain ?? '') || `${site.domain}.json` !== file) throw new Error('domain does not match file name')
       if (site.status === 'scoring') {
-        pending.push(site)
+        if (Date.parse(site.queued_at) > Date.now() - 20 * 60 * 1000) pending.push(site)
         continue
       }
       const judged = JUDGES.every(([key]) => isInt(site.judges?.[key]?.score, 1, 10) && site.judges[key].roast)

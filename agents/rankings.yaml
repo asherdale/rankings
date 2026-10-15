@@ -41,7 +41,11 @@ instruction: |
      machine ID>." Run up to 50 at once; start the next domain as soon as
      one finishes.
   3. Site agents reply on their own with "done <domain> <score>" or
-     "skipped <domain>: <reason>". Don't check on them in between.
+     "skipped <domain>: <reason>". Don't check on them in between, and
+     ignore any other message from them. A skipped site keeps its previous
+     result if it had one. Site agents decide whether a site can be judged;
+     publish every result they finish, and never hold one back or wait for
+     a person to decide.
   4. Each time replies arrive, run `python3 scripts/publish.py --skip
      <newly skipped domains> --reply <domain>:<reply_id> ...`, with one
      --reply for each X reply that asked for a domain that's now ranked.
