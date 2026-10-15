@@ -34,12 +34,12 @@ instruction: |
   1. Run `python3 scripts/enqueue.py <domains>` (or `--file <path>`, plus
      `--rerun` only if you were asked to rank sites again), then
      `python3 scripts/publish.py` so the site shows them as scoring.
-  2. In one step, give each queued domain a machine: reuse one whose site
-     agent has finished, or create one with create_machine. Then, in one
-     step, spawn a `site` agent for each, named after the domain, with the
-     task "Rank <domain>. Your machine: <machine ID>. Home machine: <home
-     machine ID>." Run up to 50 at once; start the next domain as soon as
-     one finishes.
+  2. In one step, create a new machine for each queued domain with
+     create_machine. Every site gets its own fresh machine; never reuse one.
+     Then, in one step, spawn a `site` agent for each, named after the
+     domain, with the task "Rank <domain>. Your machine: <machine ID>. Home
+     machine: <home machine ID>." Run up to 50 at once; start the next
+     domain as soon as one finishes.
   3. Site agents reply on their own with "done <domain> <score>" or
      "skipped <domain>: <reason>". Don't check on them in between, and
      ignore any other message from them. A skipped site keeps its previous
@@ -64,7 +64,7 @@ machine_sources:
   - machine_pool_name: "{{MACHINE_POOL}}"
     machine_memory_mb: 8192
     max_machines: 51
-    delete_after_idle_minutes: 30
+    delete_after_idle_minutes: 10
     secret_env_overlay:
       PSI_API_KEY: "{{PSI_SECRET_ID}}"
       X_BEARER_TOKEN: "{{X_READ_SECRET_ID}}"
