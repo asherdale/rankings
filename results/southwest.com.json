@@ -1,36 +1,36 @@
 {
   "domain": "southwest.com",
   "status": "done",
-  "audited_at": "2026-10-14T23:44:29Z",
-  "score": 4.5,
+  "audited_at": "2026-10-15T00:58:08Z",
+  "score": 6.8,
   "judges": {
     "claude": {
       "model": "anthropic/claude-haiku-5.5",
-      "score": 6,
-      "roast": "The booking form is clear, but mobile speed of 11 makes the $59 fare arrive after you've left."
+      "score": 7,
+      "roast": "Clear booking form up top, then a parade of promos marching below."
     },
     "gpt": {
       "model": "openai/gpt-5-nano",
-      "score": 4,
-      "roast": "Southwest's mobile site loads slower than a boarding announcement."
+      "score": 7,
+      "roast": "Overstuffed hero steals focus; the flight search goes undercover."
     },
     "gemini": {
-      "model": "google/gemini-2.5-flash-lite",
-      "score": 4,
-      "roast": "Southwest: Accessible, SEO-savvy, but mobile users are still waiting for takeoff."
+      "model": "google/gemini-3.5-flash-lite",
+      "score": 7,
+      "roast": "Where cattle call boarding somehow translates into a surprisingly orderly homepage."
     },
     "muse": {
       "model": "meta/muse-glimmer-30b",
-      "score": 4,
-      "roast": "Mobile cookie banner devours the flight search you came for."
+      "score": 6,
+      "roast": "Southwest thinks everyone departs Portland on October 16."
     }
   },
-  "mobile_speed": 11,
-  "desktop_speed": 57,
-  "accessibility": 97,
+  "mobile_speed": 25,
+  "desktop_speed": 60,
+  "accessibility": 100,
   "seo": 92,
   "agent_readiness": 31,
   "blocks_automated_browsers": false,
-  "minutes": 6,
-  "agent_readiness_summary": "Southwest scores 31/100 (D), with weak developer-resource discoverability and missing agent-friendly API and MCP resources."
+  "minutes": 1,
+  "agent_readiness_summary": "Ora grades southwest.com 31/100 (D), with Discovery 7/16, Access 16/51, and Usability 10/43, and its top fix is making developer resources discoverable by name."
 }

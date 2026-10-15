@@ -1,36 +1,36 @@
 {
   "domain": "bankofamerica.com",
   "status": "done",
-  "audited_at": "2026-10-14T23:40:43Z",
-  "score": 5.2,
+  "audited_at": "2026-10-15T00:58:07Z",
+  "score": 6.2,
   "judges": {
     "claude": {
       "model": "anthropic/claude-haiku-5.5",
       "score": 6,
-      "roast": "A login box, four credit cards, and an unrequested Spanish detour."
+      "roast": "Bank of America's homepage asks for your login, then immediately offers you a credit card."
     },
     "gpt": {
       "model": "openai/gpt-5-nano",
-      "score": 5,
-      "roast": "Promotions overpower clarity; the login button hides in a sea of offers."
+      "score": 8,
+      "roast": "The login panel steals the spotlight from a bold blue hero."
     },
     "gemini": {
-      "model": "google/gemini-2.5-flash-lite",
-      "score": 6,
-      "roast": "Bank of America: Your page loads slower than a bank teller."
+      "model": "google/gemini-3.5-flash-lite",
+      "score": 5,
+      "roast": "A sleek digital facade hiding decades of endless checking account fees."
     },
     "muse": {
       "model": "meta/muse-glimmer-30b",
-      "score": 4,
-      "roast": "First warning: you might be in Spanish. Second: buy a card."
+      "score": 6,
+      "roast": "Your homepage thinks everyone just wants a credit card."
     }
   },
-  "mobile_speed": 28,
-  "desktop_speed": 37,
+  "mobile_speed": 31,
+  "desktop_speed": 41,
   "accessibility": 89,
   "seo": 100,
   "agent_readiness": 43,
   "blocks_automated_browsers": false,
-  "minutes": 3,
-  "agent_readiness_summary": "Ora rated bankofamerica.com 43/100 (D), citing weak discovery and access/usability support, with top fixes including AI crawler directives, OpenAPI, and MCP."
+  "minutes": 1,
+  "agent_readiness_summary": "Bank of America scores 43/100 (Grade D), with Discovery 6/10, Access 29/55, and Usability 20/71, and its top fixes are an AI crawler policy in robots.txt, an OpenAPI spec, an MCP server, scoped permissions, WebMCP support, and JSON error responses."
 }
