@@ -75,12 +75,11 @@ function loadSites() {
 }
 
 function nav(up) {
-  const repo = config.repo_url
-    ? `<a href="${esc(config.repo_url)}/blob/main/RUBRIC.md">Methodology</a><a href="${esc(config.repo_url)}">GitHub</a>`
-    : ''
+  const repo = config.repo_url ? `<a href="${esc(config.repo_url)}">GitHub</a>` : ''
+  const how = `<a href="${up}how/">How it works</a>`
   return `<header class="nav"><div class="wrap">
 <div class="logo"><a class="home" href="${up}"><span class="mark">${esc(config.title[0])}</span>${esc(config.title)}</a><span class="by">built on <a href="https://www.omnara.com">Omnara</a></span></div>
-<nav>${repo}</nav>
+<nav>${how}${repo}</nav>
 </div></header>`
 }
 
@@ -115,7 +114,7 @@ ${body}
 </main>
 <footer><div class="wrap">A side project by <a href="https://x.com/${esc(config.x_handle)}">@${esc(config.x_handle)}</a>. Scored by AI agents running on <a href="https://www.omnara.com">Omnara</a>, with <a href="https://developer.chrome.com/docs/lighthouse">Lighthouse</a> and <a href="https://ora.ai">Ora</a>.</div></footer>
 ${backdrop ? `<script type="module">
-import { ShaderMount, neuroNoiseFragmentShader, getShaderColorFromString as color } from './shader.js'
+import { ShaderMount, neuroNoiseFragmentShader, getShaderColorFromString as color } from '${up}shader.js'
 const still = matchMedia('(prefers-reduced-motion: reduce)').matches
 new ShaderMount(document.querySelector('.backdrop .shader'), neuroNoiseFragmentShader, {
   u_colorFront: color('#c6f432'),
@@ -191,7 +190,7 @@ ${JUDGES.map(([key]) => site.judges[key].score).map((value) => `<td class="cat $
 </tr>`,
     )
     .join('\n')
-  const cta = postUrl() ? `<div class="actions"><a class="btn primary" href="${esc(postUrl())}">Get your site ranked</a></div>` : ''
+  const cta = `<div class="actions">${postUrl() ? `<a class="btn primary" href="${esc(postUrl())}">Get your site ranked</a>` : ''}<a class="text-link" href="how/">How it works →</a></div>`
   const body = `<section class="hero">
 <h1>${esc(config.headline)}</h1>
 <p class="lede">${esc(config.tagline)}</p>
@@ -294,12 +293,9 @@ ${note ? `<p class="row-note">${esc(note)}</p>` : ''}
 </div>`,
     )
     .join('\n')
-  const receipt = [
-    Number.isInteger(site.minutes) ? `Scored in ${site.minutes} min on its own machine` : '',
-    site.blocks_automated_browsers ? 'screenshots from Lighthouse because the site blocks automated browsers' : '',
-  ]
-    .filter(Boolean)
-    .join(' · ')
+  const minutes = Number.isInteger(site.minutes) ? ` in ${Math.max(site.minutes, 1)} min` : ''
+  const powered = `<aside class="powered"><span><b>5 AI agents rated this site${minutes}</b> on a machine of its own, running on <a href="https://www.omnara.com">Omnara</a>.</span><a class="go" href="../how/">How it works →</a></aside>`
+  const receipt = site.blocks_automated_browsers ? 'The judges saw screenshots from Lighthouse because this site blocks automated browsers.' : ''
   const image = site.hasCard ? `/cards/${site.domain}.jpg` : site.hasShot ? `/shots/${site.domain}.jpg` : null
   const body = `<p class="back"><a href="../#board">← Leaderboard</a></p>
 <header class="report-head">
@@ -314,11 +310,12 @@ ${ring(site.score, 168)}
 </div>
 </section>
 <section class="judges">${judges}</section>
+${powered}
 <section class="split">
 <div class="panel"><h2>By the numbers</h2><div class="rows">${facts}</div></div>
 ${site.hasShot ? `<div class="panel shot"><h2>Homepage</h2><img src="../shots/${esc(site.domain)}.jpg" alt="${esc(site.domain)} homepage"></div>` : ''}
 </section>
-<p class="receipt">${receipt}</p>`
+${receipt ? `<p class="receipt">${receipt}</p>` : ''}`
   return page({
     title: `${site.domain}: ${site.score.toFixed(1)}/10 · ${config.title}`,
     description: roastLine(site),
@@ -329,12 +326,68 @@ ${site.hasShot ? `<div class="panel shot"><h2>Homepage</h2><img src="../shots/${
   })
 }
 
+function howPage(sites) {
+  const examples = byNewest(sites).slice(0, 3).map((site) => site.domain)
+  for (const filler of ['your-site.com', 'another-site.com', 'one-more.com']) if (examples.length < 3) examples.push(filler)
+  const node = (title, note, cls = '') => `<div class="node ${cls}"><b>${title}</b><span>${note}</span></div>`
+  const edge = (label) => `<div class="edge"><span>${label}</span></div>`
+  const icon = (domain) => `<img src="${favicon(domain)}" alt="" width="14" height="14">`
+  const post = postUrl() ? `<a href="${esc(postUrl())}">the launch post</a>` : 'the launch post'
+  const omnara = '<a href="https://www.omnara.com">Omnara</a>'
+  const steps = [
+    ['A cron checks X every minute', `An ${omnara} cron wakes the host agent once a minute to look for new replies to ${post}.`],
+    ['The host agent hands out the work', 'The host agent runs all the time. For each new website, it starts a fresh cloud computer, called a machine, and a site agent to run on it, up to 50 at once.'],
+    ['A site agent visits the site', 'On its machine, the site agent opens the homepage in a real browser and takes desktop and phone screenshots. It also measures speed, accessibility, and SEO with Lighthouse, and gets an agent-readiness score from Ora.'],
+    ['Four judges score it', `The site agent starts four judges as its subagents, each on a model from a different lab: Claude, GPT, Gemini, and Muse. Each one looks at the screenshots on its own, scores the homepage out of 10, and writes a one-line roast.`],
+    ['You get a reply', 'The result is published here, and you get a reply on X with your score card, usually two or three minutes after you asked.'],
+  ]
+    .map(([title, text], i) => `<li><span class="step-num">${i + 1}</span><div><h3>${title}</h3><p>${text}</p></div></li>`)
+    .join('\n')
+  const stats = sites.length ? `<p class="how-stats">${sites.length} sites rated so far by ${sites.length * 5} AI agents on ${sites.length} machines</p>` : ''
+  const body = `<div class="how">
+<section class="hero">
+<h1>How it works</h1>
+<p class="lede">Every rating here is done by AI agents running on ${omnara}, each site on a cloud computer of its own. Here's what happens after you reply with your website.</p>
+${stats}
+</section>
+<figure class="tree">
+<div class="tier">${node('Cron', 'every minute')}</div>
+${edge('wakes')}
+<div class="tier">${node('Host agent', 'always on', 'lead')}</div>
+${edge('one per website')}
+<div class="tier fan">${examples
+    .map(
+      (domain) => `<div class="branch">${node(`${icon(domain)}${esc(domain)}`, 'site agent · own machine')}${edge('four judges')}<div class="panel-judges">${JUDGES.map(([, name, lab]) => `<span>${icon(lab)}${name}</span>`).join('')}</div></div>`,
+    )
+    .join('')}</div>
+</figure>
+<ol class="steps">
+${steps}
+</ol>
+<section class="build">
+<h2>Build your own</h2>
+<p>The code is open source. Open it in a coding agent like Claude Code and say “Follow SKILL.md to deploy the rankings agents.” It sets everything up on your ${omnara} account.</p>
+<div class="actions"><a class="btn primary" href="https://www.omnara.com">Try Omnara</a>${config.repo_url ? `<a class="btn" href="${esc(config.repo_url)}">View the code</a>` : ''}</div>
+</section>
+</div>`
+  return page({
+    title: `How it works · ${config.title}`,
+    description: 'Every homepage here is rated by AI agents running on Omnara: a cron, a host agent, a site agent per website, and four judges.',
+    path: '/how/',
+    depth: 1,
+    body,
+    backdrop: backdrop(),
+  })
+}
+
 const { sites, pending } = loadSites()
 rmSync(dist, { recursive: true, force: true })
 mkdirSync(join(dist, 'shots'), { recursive: true })
 mkdirSync(join(dist, 'cards'), { recursive: true })
 for (const file of ['style.css', 'shader.js', 'favicon.svg']) copyFileSync(join(root, 'site', file), join(dist, file))
 writeFileSync(join(dist, 'index.html'), indexPage(sites, pending))
+mkdirSync(join(dist, 'how'), { recursive: true })
+writeFileSync(join(dist, 'how', 'index.html'), howPage(sites))
 for (const site of sites) {
   mkdirSync(join(dist, site.domain), { recursive: true })
   writeFileSync(join(dist, site.domain, 'index.html'), sitePage(site, sites.length))

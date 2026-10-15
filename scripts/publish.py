@@ -6,9 +6,10 @@ import shutil
 import subprocess
 import sys
 import tarfile
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from pathlib import Path
 
+from enqueue import STALE, older_than
 from x_inbox import STATE as X_STATE
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -18,14 +19,7 @@ MEASUREMENTS = ("mobile_speed", "desktop_speed", "accessibility", "seo", "agent_
 KEYS = {"domain", "status", "audited_at", "score", "judges", *MEASUREMENTS, "agent_readiness_summary",
         "blocks_automated_browsers", "minutes"}
 JPEG = b"\xff\xd8\xff"
-STALE = timedelta(minutes=20)
 UNANSWERED = timedelta(hours=1)
-
-
-def older_than(stamp, limit):
-    if not stamp:
-        return True
-    return datetime.now(timezone.utc) - datetime.fromisoformat(stamp.replace("Z", "+00:00")) > limit
 
 
 def is_int(value, low, high):

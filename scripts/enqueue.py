@@ -3,12 +3,19 @@ import argparse
 import ipaddress
 import json
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 DOMAIN = re.compile(r"^[a-z0-9-]+(\.[a-z0-9-]+)+$")
 INTERNAL = (".local", ".internal", ".localhost", ".lan", ".home", ".corp", ".test", ".invalid", ".example")
+STALE = timedelta(minutes=20)
+
+
+def older_than(stamp, limit):
+    if not stamp:
+        return True
+    return datetime.now(timezone.utc) - datetime.fromisoformat(stamp.replace("Z", "+00:00")) > limit
 
 
 def normalize(raw):
@@ -33,7 +40,7 @@ def main():
     raw = list(args.domains)
     if args.file:
         raw += [line.split("#")[0] for line in (ROOT / args.file).read_text().splitlines()]
-    queued, done, rejected = [], [], []
+    queued, done, scoring, rejected = [], [], [], []
     for item in dict.fromkeys(token for entry in raw for token in re.split(r"[\s,]+", entry) if token):
         domain = normalize(item)
         if not domain:
@@ -44,12 +51,15 @@ def main():
         if existing.get("status") == "done" and not args.rerun:
             done.append(domain)
             continue
+        if existing.get("status") == "scoring" and not older_than(existing.get("queued_at"), STALE):
+            scoring.append(domain)
+            continue
         if domain not in queued:
             queued.append(domain)
             if existing.get("status") != "done":
                 queued_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
                 path.write_text(json.dumps({"domain": domain, "status": "scoring", "queued_at": queued_at}, indent=2) + "\n")
-    print(json.dumps({"queued": queued, "already_ranked": done, "rejected": rejected}, indent=2))
+    print(json.dumps({"queued": queued, "already_ranked": done, "already_scoring": scoring, "rejected": rejected}, indent=2))
 
 
 if __name__ == "__main__":
