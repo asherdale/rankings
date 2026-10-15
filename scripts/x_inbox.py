@@ -17,11 +17,11 @@ TOKEN = re.compile(r"(?<![@\w])(?:https?://)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:/\S*)
 
 
 def launch_post():
-    url = json.loads((ROOT / "site" / "config.json").read_text()).get("x_post_url", "")
-    match = re.search(r"/status/(\d+)", url)
+    config = json.loads((ROOT / "site" / "config.json").read_text())
+    match = re.search(r"/status/(\d+)", config.get("x_post_url", ""))
     if not match:
         raise SystemExit("x_inbox.py: set x_post_url in site/config.json to the launch post")
-    return match.group(1), json.loads((ROOT / "site" / "config.json").read_text()).get("x_handle", "").lower()
+    return match.group(1), {config.get("x_handle", "").lower(), config.get("x_bot_handle", "").lower()} - {""}
 
 
 def search(post, since):
@@ -63,7 +63,7 @@ def main():
     parser.add_argument("--since", help="only replies newer than this post ID")
     args = parser.parse_args()
 
-    post, handle = launch_post()
+    post, own_handles = launch_post()
     state = json.loads(STATE.read_text()) if STATE.exists() else {}
     replies, users = search(post, args.since or state.get("newest_id"))
     sent_log = ROOT / "replies" / "sent.txt"
@@ -72,7 +72,7 @@ def main():
     for reply in sorted(replies, key=lambda r: int(r["id"])):
         author = users.get(reply["author_id"], "")
         domain = domain_of(reply)
-        if not domain or author.lower() == handle or reply["id"] in sent:
+        if not domain or author.lower() in own_handles or reply["id"] in sent:
             continue
         result = ROOT / "results" / f"{domain}.json"
         ranked = result.exists() and json.loads(result.read_text()).get("status") == "done"
