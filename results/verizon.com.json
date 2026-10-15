@@ -1,4 +1,36 @@
 {
   "domain": "verizon.com",
-  "status": "scoring"
+  "status": "done",
+  "audited_at": "2026-10-15T00:58:21Z",
+  "score": 6.2,
+  "judges": {
+    "claude": {
+      "model": "anthropic/claude-haiku-5.5",
+      "score": 6,
+      "roast": "Your phone, your way, says the cookie banner, blocking the headline on both screens."
+    },
+    "gpt": {
+      "model": "openai/gpt-5-nano",
+      "score": 7,
+      "roast": "Simplicity Plan banner dominates everything, even the tiny navigation."
+    },
+    "gemini": {
+      "model": "google/gemini-3.5-flash-lite",
+      "score": 6,
+      "roast": "A blinding wall of crimson screaming phone deals at you."
+    },
+    "muse": {
+      "model": "meta/muse-glimmer-30b",
+      "score": 6,
+      "roast": "Simplicity Plan is simple to see, hard to actually understand."
+    }
+  },
+  "mobile_speed": null,
+  "desktop_speed": 47,
+  "accessibility": 90,
+  "seo": 85,
+  "agent_readiness": 48,
+  "blocks_automated_browsers": false,
+  "minutes": 1,
+  "agent_readiness_summary": "Ora rates verizon.com 48/100 (Grade C), with its weakest layers in Usability (18/53) and Access (26/56) and top fixes of an MCP server, an OpenAPI spec, and OAuth 2.0 support."
 }
