@@ -1,36 +1,36 @@
 {
   "domain": "chase.com",
   "status": "done",
-  "audited_at": "2026-10-14T23:42:43Z",
-  "score": 6.5,
+  "audited_at": "2026-10-15T00:57:59Z",
+  "score": 7.2,
   "judges": {
     "claude": {
       "model": "anthropic/claude-haiku-5.5",
       "score": 7,
-      "roast": "Chase opens with $400 bait and a login box, no small talk."
+      "roast": "Chase leads with a $400 bonus, then politely asks for your password."
     },
     "gpt": {
       "model": "openai/gpt-5-nano",
-      "score": 6,
-      "roast": "Sign-in first, products second; Chase turns browsing into a password quest."
+      "score": 8,
+      "roast": "That $400 hero steals the screen, hides the login trail."
     },
     "gemini": {
-      "model": "google/gemini-2.5-flash-lite",
+      "model": "google/gemini-3.5-flash-lite",
       "score": 7,
-      "roast": "Chase.com: So fast on desktop, your phone might need a nap."
+      "roast": "Bribing people with four hundred dollars just to look at their checking account."
     },
     "muse": {
       "model": "meta/muse-glimmer-30b",
-      "score": 6,
-      "roast": "New customers get $400, returning ones get a sign-in pop quiz."
+      "score": 7,
+      "roast": "Sign-in box photobombs the $400 hero like an overeager teller."
     }
   },
-  "mobile_speed": 40,
-  "desktop_speed": 80,
+  "mobile_speed": 37,
+  "desktop_speed": 78,
   "accessibility": 100,
   "seo": 92,
   "agent_readiness": 50,
   "blocks_automated_browsers": false,
-  "minutes": 5,
-  "agent_readiness_summary": "Chase scores 50/100 (C), with decent discovery but weak agent access and usability; key gaps include MCP and an OpenAPI specification."
+  "minutes": 1,
+  "agent_readiness_summary": "Ora scores chase.com 50/100 (grade C), with the biggest gaps in usability and access, such as no MCP server, no published OpenAPI spec, and no scoped permissions."
 }
