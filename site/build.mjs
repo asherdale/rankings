@@ -53,12 +53,12 @@ function loadSites() {
         continue
       }
       const judged = JUDGES.every(([key]) => isInt(site.judges?.[key]?.score, 1, 10) && site.judges[key].roast)
-      const measured = MEASUREMENTS.every(([key]) => isInt(site[key], 0, 100) || (key === 'agent_readiness' && site[key] === null))
+      const measured = MEASUREMENTS.every(([key]) => site[key] === null || isInt(site[key], 0, 100))
       if (typeof site.score !== 'number' || !judged || !measured) {
         throw new Error('missing scores')
       }
       const values = MEASUREMENTS.map(([key]) => site[key]).filter((value) => value !== null)
-      site.measured = values.reduce((sum, value) => sum + value, 0) / values.length
+      site.measured = values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0
       site.harshest = JUDGES.reduce((low, judge) => (site.judges[judge[0]].score < site.judges[low[0]].score ? judge : low))
       site.hasShot = existsSync(join(dataDir, 'shots', `${site.domain}.jpg`))
       site.hasCard = existsSync(join(dataDir, 'cards', `${site.domain}.jpg`))

@@ -5,14 +5,15 @@ a real browser, takes screenshots, and hands them to four AI judges: Claude,
 GPT, Gemini, and Muse. Each result file records the exact model behind each judge.
 
 Each judge sees the same screenshots of the desktop homepage, the phone view,
-and the full page, plus the page's text and five measurements. It scores the
+and the full page, plus the page's text. It scores the
 homepage from 1 to 10 on how quickly a stranger understands what it is and
 what to do next, how good it looks on desktop and phone, and how good the
 writing is. Then it writes a one-line roast. The judges work separately and
 never see each other's scores.
 
-Weak measurements count against a homepage. Lighthouse and Ora score from 0
-to 100; the site shows them out of 10 like everything else:
+Each site's page also shows five measurements. They don't change the score.
+Lighthouse and Ora score from 0 to 100; the site shows them out of 10 like
+everything else:
 
 | Measurement | How it's measured |
 | --- | --- |
@@ -20,7 +21,9 @@ to 100; the site shows them out of 10 like everything else:
 | Desktop speed | Lighthouse performance score on desktop. |
 | Accessibility | Lighthouse accessibility score on a phone. |
 | SEO | Lighthouse SEO score on a phone. |
-| Agent readiness | [Ora](https://ora.ai)'s score for how well AI agents can find, read, and use the site. If Ora can't score a site, it shows as n/a. |
+| Agent readiness | [Ora](https://ora.ai)'s score for how well AI agents can find, read, and use the site. |
+
+A measurement that Lighthouse or Ora can't take shows as n/a.
 
 The site's score is the judges' average, rounded to one decimal, and gets a
 letter grade. Sites with the same score are ordered by their average
@@ -40,7 +43,8 @@ Each site is visited by an automated browser that identifies itself as
 screenshots instead, and the site's page says so. If it blocks Lighthouse,
 Google's [PageSpeed Insights](https://pagespeed.web.dev), which runs the same
 Lighthouse from Google's servers, measures it instead. Sites that neither can
-load aren't listed.
+load aren't listed. If only Lighthouse fails, the site is still judged and its
+Lighthouse measurements show as n/a.
 
 These scores are opinions from AI models, not facts, and a rerun can move a
 score.
@@ -61,7 +65,7 @@ While a site is being scored, its result is just `domain` and
   "judges": {
     "claude": { "model": "anthropic/claude-haiku-5.5", "score": 7, "roast": "One funny, sharp sentence." },
     "gpt": { "model": "openai/gpt-5-nano", "score": 5, "roast": "One funny, sharp sentence." },
-    "gemini": { "model": "google/gemini-2.5-flash-lite", "score": 7, "roast": "One funny, sharp sentence." },
+    "gemini": { "model": "google/gemini-3.5-flash-lite", "score": 7, "roast": "One funny, sharp sentence." },
     "muse": { "model": "meta/muse-glimmer-30b", "score": 7, "roast": "One funny, sharp sentence." }
   },
   "mobile_speed": 41,

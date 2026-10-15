@@ -8,11 +8,13 @@ ranked at [ratemyhomepage.pages.dev](https://ratemyhomepage.pages.dev).
 Three [Omnara](https://www.omnara.com) agent profiles, in [`agents/`](agents),
 do the work:
 
-- **The main agent** ([`rankings.yaml`](agents/rankings.yaml)) takes a batch
-  of domains, publishes a "scoring" placeholder for each one, and gives every
-  site its own machine and its own site agent. As results come in,
-  [`scripts/publish.py`](scripts/publish.py) checks them and pushes them
-  here.
+- **The host** ([`rankings.yaml`](agents/rankings.yaml)) runs all the time.
+  Every minute an Omnara cron asks it to check X for replies to the launch
+  post. It gives every new website its own machine and its own site agent,
+  then [`scripts/publish.py`](scripts/publish.py) checks the results and
+  pushes them here, along with a request to reply. A GitHub workflow
+  ([`reply.yml`](.github/workflows/reply.yml)) posts the reply with the share
+  card, so the keys that can post on X never reach an agent.
 - **Site agents** ([`site.yaml`](agents/site.yaml)), one per website, run
   [`scripts/rank.py`](scripts/rank.py) to take screenshots in a real browser
   and measure it with Lighthouse, and ask [Ora](https://ora.ai)'s MCP
@@ -21,7 +23,8 @@ do the work:
   model from a different lab, look at the screenshots and score the homepage
   out of 10 with a one-line roast. The site's score is their average.
 
-Site agents and judges read untrusted web pages, so they hold no credentials.
+Site agents and judges read untrusted web pages, so they can't push to GitHub
+or post on X.
 
 [RUBRIC.md](RUBRIC.md) explains the scoring.
 
@@ -39,9 +42,8 @@ Follow SKILL.md to deploy the rankings agents.
 ```
 
 It signs you in to Omnara, stores a PageSpeed Insights API key for sites that
-block Lighthouse, connects
-GitHub so the main agent can push results, creates both profiles, and ranks a
-first batch.
+block Lighthouse, connects GitHub so the host can push results, sets up X,
+creates the profiles, and ranks a first batch.
 
 ## Build the site
 

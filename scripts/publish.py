@@ -38,10 +38,8 @@ def check_result(data, domain):
             return "judge text fields must be single sentences within length limits"
     if data.get("score") != round(sum(j["score"] for j in judges.values()) / len(judges), 1):
         return "score must be the judges' average"
-    if not all(is_int(data.get(key), 0, 100) for key in MEASUREMENTS if key != "agent_readiness"):
-        return "measurements must be integers from 0 to 100"
-    if data.get("agent_readiness") is not None and not is_int(data["agent_readiness"], 0, 100):
-        return "agent_readiness must be an integer from 0 to 100 or null"
+    if not all(key in data and (data[key] is None or is_int(data[key], 0, 100)) for key in MEASUREMENTS):
+        return "measurements must be integers from 0 to 100, or null"
     if "agent_readiness_summary" in data and not is_text(data["agent_readiness_summary"], 300):
         return "agent_readiness_summary must be one sentence"
     if not isinstance(data.get("minutes"), int) or not isinstance(data.get("blocks_automated_browsers"), bool):
@@ -79,6 +77,8 @@ def main():
     parser = argparse.ArgumentParser(description="Publish finished bundles from the inbox and push them.")
     parser.add_argument("--inbox", default="/workspace/inbox")
     parser.add_argument("--skip", nargs="*", default=[], help="domains that were skipped; their placeholders are removed")
+    parser.add_argument("--reply", nargs="*", default=[], metavar="DOMAIN:POST_ID",
+                        help="reply on X to these posts with these domains' results")
     args = parser.parse_args()
 
     inbox = Path(args.inbox)
@@ -104,15 +104,31 @@ def main():
         if DOMAIN.match(domain) and path.exists() and json.loads(path.read_text()).get("status") == "scoring":
             path.unlink()
 
-    git("add", "-A", "--", "results", "cards", "shots")
+    replies = []
+    sent_log = ROOT / "replies" / "sent.txt"
+    sent = set(sent_log.read_text().split()) if sent_log.exists() else set()
+    for item in args.reply:
+        domain, _, post = item.partition(":")
+        if post in sent:
+            continue
+        path = ROOT / "results" / f"{domain}.json"
+        if not DOMAIN.match(domain) or not post.isdigit() or not path.exists() or json.loads(path.read_text()).get("status") != "done":
+            problems.append(f"can't reply to {item}: no finished result")
+            continue
+        (ROOT / "replies").mkdir(exist_ok=True)
+        (ROOT / "replies" / f"{post}.json").write_text(json.dumps({"domain": domain, "reply_id": post}) + "\n")
+        replies.append(item)
+
+    git("add", "-A", "--", "results", "cards", "shots", "replies")
     pushed = False
     if git("diff", "--cached", "--quiet", check=False).returncode:
         git("commit", "-m", f"Rank {len(published)} site{'s' if len(published) != 1 else ''}" if published else "Update queue")
-        if git("push", check=False).returncode:
+        for _ in range(5):
+            if not git("push", check=False).returncode:
+                pushed = True
+                break
             git("pull", "--rebase")
-            git("push")
-        pushed = True
-    print(json.dumps({"published": published, "problems": problems, "pushed": pushed}, indent=2))
+    print(json.dumps({"published": published, "replies": replies, "problems": problems, "pushed": pushed}, indent=2))
     if problems:
         sys.exit(1)
 

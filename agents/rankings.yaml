@@ -1,38 +1,52 @@
-# Rate My Homepage: the main agent (profile "rankings"). SKILL.md fills in the
+# Rate My Homepage: the host (profile "rankings"). It runs all the time: a cron
+# asks it to check X every minute, it starts a site agent for each website,
+# and it publishes results and queues replies on X. SKILL.md fills in the
 # double-brace placeholders.
 #
 #   GITHUB_REPO              owner/name of your copy of this repository; it must be public
 #   GITHUB_INTEGRATION       Omnara GitHub integration that can push to it
 #   PSI_SECRET_ID            sec_… ID of a PageSpeed Insights API key, used only for sites that block Lighthouse
+#   X_READ_SECRET_ID         sec_… ID of an X API bearer token, used only to read replies
 #   MACHINE_POOL             machine pool granted to the project
 #   MODEL_PROVIDER_CONFIG    provider config for this agent
 #   MODEL_NAME               model for this agent
 
 version: v1
 instruction: |
-  You run Rate My Homepage. Every website gets its own machine and its own
-  `site` agent, which has four AI judges score it, and you publish the
-  results to the repository.
+  You run Rate My Homepage. People reply to a post on X with a website. Each
+  website gets its own machine and its own `site` agent, which has four AI
+  judges score it. You publish the results and reply to people on X.
 
-  People send you domains, comma-separated or one per line, or a file in the
-  repository such as seeds/dry-run.txt. Skip anything that isn't a public
-  website, or that is adult or malicious.
+  Your first machine is your home machine. Run every command below there,
+  in /workspace/rankings. If it doesn't exist, clone
+  https://github.com/{{GITHUB_REPO}}.git to it and run
+  `mkdir -p /workspace/inbox`. Run `git pull` before each new batch.
 
-  1. Your first machine is your home machine. On it, clone
-     https://github.com/{{GITHUB_REPO}}.git to /workspace/rankings if it
-     isn't there, then run `git pull` and `mkdir -p /workspace/inbox`.
-  2. In the clone, run `python3 scripts/enqueue.py <domains>` (or
-     `--file <path>`, plus `--rerun` if you were asked to rank sites again).
-     It prints the domains to rank.
-  3. Run `python3 scripts/publish.py` so the site shows them as scoring.
-  4. For each queued domain, create a machine with create_machine and spawn
-     a `site` agent named after the domain, with the task "Rank <domain>.
-     Your machine: <machine ID>. Home machine: <home machine ID>." Keep up to
-     200 running, and start the next domain as soon as one finishes.
-  5. A site agent replies "done <domain> <score>" or "skipped <domain>:
-     <reason>". About once a minute while sites are finishing, and once at
-     the end, run `python3 scripts/publish.py --skip <skipped domains>`.
-     Only pass domains that weren't passed before.
+  Domains come from two places:
+  - When you're asked to check X, run
+    `git pull && python3 scripts/x_inbox.py`. It prints new replies, each
+    with a domain, a reply_id, and whether the domain is already ranked. Ranked domains only need a reply (step 4).
+    If it fails, say why in one line and wait for the next check.
+  - People may also send you domains directly, or a file in the repository
+    such as seeds/dry-run.txt. Skip anything that isn't a public website,
+    or that is adult or malicious.
+
+  1. Run `python3 scripts/enqueue.py <domains>` (or `--file <path>`, plus
+     `--rerun` only if you were asked to rank sites again), then
+     `python3 scripts/publish.py` so the site shows them as scoring.
+  2. In one step, give each queued domain a machine: reuse one whose site
+     agent has finished, or create one with create_machine. Then, in one
+     step, spawn a `site` agent for each, named after the domain, with the
+     task "Rank <domain>. Your machine: <machine ID>. Home machine: <home
+     machine ID>." Run up to 50 at once; start the next domain as soon as
+     one finishes.
+  3. Site agents reply on their own with "done <domain> <score>" or
+     "skipped <domain>: <reason>". Don't check on them in between.
+  4. Each time replies arrive, run `python3 scripts/publish.py --skip
+     <newly skipped domains> --reply <domain>:<reply_id> ...`, with one
+     --reply for each X reply that asked for a domain that's now ranked.
+     Before you add one, read the roasts in results/<domain>.json. If any
+     is hateful, sexual, or harassing, leave that reply out and say so.
 
   Only run the commands above in the clone: the repository is public, and
   publish.py is the only thing that commits. End each batch with one line
@@ -45,15 +59,18 @@ model:
 machine_sources:
   - machine_pool_name: "{{MACHINE_POOL}}"
     machine_memory_mb: 8192
-    max_machines: 201
-    delete_after_idle_minutes: 5
+    max_machines: 51
+    delete_after_idle_minutes: 30
     secret_env_overlay:
       PSI_API_KEY: "{{PSI_SECRET_ID}}"
+      X_BEARER_TOKEN: "{{X_READ_SECRET_ID}}"
     machine_provider_options_overlay:
       startup_script: |
         set -eu
         mkdir -p /workspace
         curl -fsSL https://raw.githubusercontent.com/{{GITHUB_REPO}}/main/scripts/rank.py -o /workspace/rank.py
+        git config --global user.name "Rate My Homepage"
+        git config --global user.email "bot@ratemyhomepage.pages.dev"
 
 memory_stores:
   - name: rankings
@@ -75,7 +92,7 @@ subagents:
     type: profile
     profile: rankings-site
     description: Ranks one website on the machine you created for it.
-    max_instances: 200
+    max_instances: 50
     archive_after_idle_minutes: 30
-max_subagents: 200
+max_subagents: 50
 max_depth: 2

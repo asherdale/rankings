@@ -1,0 +1,35 @@
+name: Reply on X
+
+on:
+  push:
+    branches: [main]
+    paths: ["replies/**"]
+  workflow_dispatch:
+
+concurrency:
+  group: reply
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  reply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: python3 scripts/x_reply.py
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+      - name: Clear sent replies
+        if: always()
+        run: |
+          git config user.name "Rate My Homepage"
+          git config user.email "bot@ratemyhomepage.pages.dev"
+          git add -A replies
+          git diff --cached --quiet && exit 0
+          git commit -m "Send replies"
+          git push || (git pull --rebase && git push)

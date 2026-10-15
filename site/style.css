@@ -79,7 +79,8 @@ h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
 .board { border: 1px solid var(--line); border-radius: 12px; overflow-x: auto; background: var(--bg); }
 table { width: 100%; border-collapse: collapse; }
 th { position: sticky; top: 0; background: var(--panel); padding: 12px 12px; font-size: 12px; font-weight: 500; color: var(--muted); text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); cursor: pointer; user-select: none; }
-th:first-child, th:nth-child(2) { text-align: left; }
+th:nth-child(2) { text-align: left; }
+th:first-child { text-align: center; }
 th:nth-child(2) { cursor: default; }
 th img { border-radius: 3px; margin-right: 6px; vertical-align: -2px; background: #fff; }
 th.sorted { color: var(--accent); }
@@ -88,7 +89,7 @@ td { padding: 14px 12px; border-bottom: 1px solid var(--line); white-space: nowr
 tbody tr { cursor: pointer; transition: background 0.1s; }
 tbody tr:hover { background: var(--hover); }
 tbody tr:last-child td { border-bottom: 0; }
-td.rank { text-align: left; width: 52px; color: var(--muted); font: 500 14px var(--mono); }
+td.rank { text-align: center; width: 52px; color: var(--muted); font: 500 14px var(--mono); }
 .medal { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; color: #fff; font: 600 13px var(--sans); background: var(--gold); }
 .medal.silver { background: var(--silver); }
 .medal.bronze { background: var(--bronze); }

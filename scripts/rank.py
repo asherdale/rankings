@@ -114,12 +114,12 @@ def parse(report, preset):
     if report.get("audits", {}).get("http-status-code", {}).get("score") == 0:
         raise RuntimeError("the page returned an error status")
     scores = {c: report["categories"].get(c, {}).get("score") for c in ("performance", "accessibility", "seo")}
-    if any(score is None for score in scores.values()):
-        raise RuntimeError("some categories could not be scored")
+    if all(score is None for score in scores.values()):
+        raise RuntimeError("no categories could be scored")
     shots = {"final": report["audits"].get("final-screenshot", {}).get("details", {}).get("data")}
     if preset == "desktop":
         shots["full"] = (report.get("fullPageScreenshot") or {}).get("screenshot", {}).get("data")
-    return {c: round(s * 100) for c, s in scores.items()}, shots
+    return {c: None if s is None else round(s * 100) for c, s in scores.items()}, shots
 
 
 def measure(urls, preset, chrome, install):
@@ -246,70 +246,87 @@ def render(p, page_html, path, width, height=None, full_page=False):
         browser.close()
 
 
-def collect(args):
+def measure_site(args):
+    out = Path(args.out)
+    domain = args.domain
+    url = resolve(domain)
+    urls = list(dict.fromkeys([url, f"https://{domain}", f"https://www.{domain}"]))
+    install = install_lighthouse()
+    chrome = find_chrome()
+    if not chrome:
+        from playwright.sync_api import sync_playwright
+
+        with sync_playwright() as p:
+            if os.path.exists(p.chromium.executable_path):
+                chrome = p.chromium.executable_path
+    report = {"scores": {}, "shots": {}, "failures": []}
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        runs = {preset: pool.submit(measure, urls, preset, chrome, install) for preset in ("mobile", "desktop")}
+        for preset, future in runs.items():
+            try:
+                report["scores"][preset], report["shots"][preset] = future.result()
+            except Exception as exc:
+                report["scores"][preset], report["shots"][preset] = {}, {}
+                report["failures"].append(str(exc)[:200])
+    (out / "lighthouse.tmp").write_text(json.dumps(report))
+    (out / "lighthouse.tmp").replace(out / "lighthouse.json")
+
+
+def lighthouse_report(out, timeout):
+    path = out / "lighthouse.json"
+    end = time.monotonic() + timeout
+    while not path.exists() and time.monotonic() < end:
+        time.sleep(1)
+    if not path.exists():
+        return {"scores": {"mobile": {}, "desktop": {}}, "shots": {"mobile": {}, "desktop": {}}, "failures": ["Lighthouse timed out"]}
+    return json.loads(path.read_text())
+
+
+def shoot(args):
     from playwright.sync_api import sync_playwright
 
     out = Path(args.out)
     shutil.rmtree(out, ignore_errors=True)
     out.mkdir(parents=True)
     domain = args.domain
-    url = resolve(domain)
-    urls = list(dict.fromkeys([url, f"https://{domain}", f"https://www.{domain}"]))
-    result = {"domain": domain, "url": url, "started_at": time.time()}
-    install = install_lighthouse()
-    chrome = find_chrome()
-    if not chrome:
-        with sync_playwright() as p:
-            if os.path.exists(p.chromium.executable_path):
-                chrome = p.chromium.executable_path
-    with ThreadPoolExecutor(max_workers=3) as pool:
-        mobile = pool.submit(measure, urls, "mobile", chrome, install)
-        desktop = pool.submit(measure, urls, "desktop", chrome, install)
-        browsed = pool.submit(browse_page, url, out)
-        try:
-            page = browsed.result()
-        except Exception as exc:
-            page = {"blocked": True, "error": str(exc).splitlines()[0][:200]}
-        try:
-            (mobile_scores, mobile_shots), (desktop_scores, desktop_shots) = mobile.result(), desktop.result()
-        except Exception as exc:
-            result.update(skip=True, reason=f"Lighthouse couldn't load the site: {str(exc)[:200]}")
-            (out / "collect.json").write_text(json.dumps(result, indent=2))
-            print(json.dumps({k: result[k] for k in ("domain", "skip", "reason")}, indent=2))
-            return
+    started = time.time()
+    subprocess.Popen([sys.executable, __file__, "measure", domain, "--out", str(out)], start_new_session=True,
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        page = browse_page(resolve(domain), out)
+    except Exception as exc:
+        page = {"blocked": True, "error": str(exc).splitlines()[0][:200]}
     with sync_playwright() as p:
         if page["blocked"]:
             page.update(title="", description="", headings=[], text="")
             for name in ("desktop.jpg", "full.jpg", "thumb.jpg", "mobile.jpg"):
                 (out / name).unlink(missing_ok=True)
-            write_data_url(desktop_shots.get("final"), out / "desktop")
-            write_data_url(mobile_shots.get("final"), out / "mobile")
-            write_data_url(desktop_shots.get("full"), out / "full")
+            report = lighthouse_report(out, 330)
+            write_data_url(report["shots"]["desktop"].get("final"), out / "desktop")
+            write_data_url(report["shots"]["mobile"].get("final"), out / "mobile")
+            write_data_url(report["shots"]["desktop"].get("full"), out / "full")
             if (out / "desktop.jpg").exists():
                 shutil.copy(out / "desktop.jpg", out / "thumb.jpg")
         shots = {name: next(out.glob(f"{name}.*"), None) for name in ("desktop", "mobile", "full")}
         shots["mobile"] = shots["mobile"] or shots["desktop"]
         shots["full"] = shots["full"] or shots["desktop"]
         if not shots["desktop"]:
-            result.update(skip=True, reason="no screenshots were available")
-            (out / "collect.json").write_text(json.dumps(result, indent=2))
-            print(json.dumps({k: result[k] for k in ("domain", "skip", "reason")}, indent=2))
+            failures = lighthouse_report(out, 0)["failures"]
+            reason = failures[0] if failures else page.get("error") or "the site blocks automated browsers"
+            print(json.dumps({"domain": domain, "skip": True, "reason": f"couldn't load the site: {reason}"}, indent=2))
             return
         render(p, SHEET.format(**{k: data_url(v) for k, v in shots.items()}), out / "sheet.jpg", 2000, full_page=True)
 
-    result.update(
-        mobile_speed=mobile_scores["performance"],
-        desktop_speed=desktop_scores["performance"],
-        accessibility=mobile_scores["accessibility"],
-        seo=mobile_scores["seo"],
-        blocks_automated_browsers=page["blocked"],
-        title=page.get("title") or "",
-        description=page.get("description") or "",
-        headings=page.get("headings") or [],
-        text=(page.get("text") or "")[:1500],
-    )
-    (out / "collect.json").write_text(json.dumps(result, indent=2))
-    print(json.dumps({k: v for k, v in result.items() if k not in ("started_at", "url")}, indent=2))
+    page = {
+        "domain": domain,
+        "started_at": started,
+        "blocks_automated_browsers": page["blocked"],
+        "title": page.get("title") or "",
+        "headings": page.get("headings") or [],
+        "text": (page.get("text") or "")[:1500],
+    }
+    (out / "page.json").write_text(json.dumps(page, indent=2))
+    print(json.dumps({k: v for k, v in page.items() if k != "started_at"}, indent=2))
 
 
 CARD = """<!doctype html><html><head><meta charset="utf-8">
@@ -352,6 +369,10 @@ def number(value, name, low, high):
     return value
 
 
+def optional(value, name):
+    return None if value is None else number(value, name, 0, 100)
+
+
 def sentence(value, name, limit=200):
     if not isinstance(value, str) or not value.strip() or len(value) > limit or "\n" in value.strip():
         fail(f"{name} must be one sentence of at most {limit} characters")
@@ -362,9 +383,9 @@ def finish(args):
     from playwright.sync_api import sync_playwright
 
     out = Path(args.out)
-    collected = json.loads((out / "collect.json").read_text())
-    if collected.get("domain") != args.domain or collected.get("skip"):
-        fail(f"no usable collect.json for {args.domain}")
+    collected = json.loads((out / "page.json").read_text())
+    if collected.get("domain") != args.domain:
+        fail(f"no screenshots for {args.domain}; run shoot first")
     try:
         review = json.loads(sys.stdin.read())
     except json.JSONDecodeError as exc:
@@ -382,6 +403,7 @@ def finish(args):
         for key in JUDGES
     }
     score = round(sum(j["score"] for j in judges.values()) / len(judges), 1)
+    report = lighthouse_report(out, 330)
     letter = next(g for minimum, g in GRADES if score >= minimum)
     result = {
         "domain": args.domain,
@@ -389,11 +411,11 @@ def finish(args):
         "audited_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "score": score,
         "judges": judges,
-        "mobile_speed": number(collected["mobile_speed"], "mobile_speed", 0, 100),
-        "desktop_speed": number(collected["desktop_speed"], "desktop_speed", 0, 100),
-        "accessibility": number(collected["accessibility"], "accessibility", 0, 100),
-        "seo": number(collected["seo"], "seo", 0, 100),
-        "agent_readiness": None if review.get("ora_score") is None else number(review["ora_score"], "ora_score", 0, 100),
+        "mobile_speed": optional(report["scores"]["mobile"].get("performance"), "mobile_speed"),
+        "desktop_speed": optional(report["scores"]["desktop"].get("performance"), "desktop_speed"),
+        "accessibility": optional(report["scores"]["mobile"].get("accessibility"), "accessibility"),
+        "seo": optional(report["scores"]["mobile"].get("seo"), "seo"),
+        "agent_readiness": optional(review.get("ora_score"), "ora_score"),
         "blocks_automated_browsers": bool(collected.get("blocks_automated_browsers")),
         "minutes": max(1, round((time.time() - collected["started_at"]) / 60)),
     }
@@ -430,15 +452,20 @@ def finish(args):
 def main():
     parser = argparse.ArgumentParser(description="Rank one website for Rate My Homepage.")
     sub = parser.add_subparsers(dest="command", required=True)
-    one = sub.add_parser("collect", help="get Lighthouse scores, screenshots, and page text")
-    two = sub.add_parser("finish", help="average the judges' scores from stdin and bundle the result")
-    for command in (one, two):
+    commands = {
+        "shoot": (shoot, "take screenshots and start Lighthouse in the background"),
+        "finish": (finish, "average the judges' scores from stdin, add Lighthouse, and bundle the result"),
+        "measure": (measure_site, "run Lighthouse; shoot starts this for you"),
+    }
+    for name, (_, help_text) in commands.items():
+        command = sub.add_parser(name, help=help_text)
         command.add_argument("domain")
-        command.add_argument("--out", default="/workspace/out")
+        command.add_argument("--out", help="output folder (default: /workspace/out/<domain>)")
     args = parser.parse_args()
     if not DOMAIN.match(args.domain):
         fail(f"bad domain {args.domain!r}")
-    collect(args) if args.command == "collect" else finish(args)
+    args.out = args.out or f"/workspace/out/{args.domain}"
+    commands[args.command][0](args)
 
 
 if __name__ == "__main__":

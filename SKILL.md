@@ -77,6 +77,21 @@ npx omnara secrets create --owner-kind project --owner-project-id <project-id> \
 
 Its `id` (`sec_…`) is `PSI_SECRET_ID`.
 
+Then set up X, which the agents use to read replies to the launch post and
+answer them. The user creates an app in the
+[X developer console](https://console.x.com) with read and write access, adds
+pay-per-use credit, and sets a monthly spend cap. Store the app's bearer
+token, which can only read, the same way in a secret named `rankings-x-read`;
+its `id` is `X_READ_SECRET_ID`. The keys that can post never reach Omnara: the user stores
+them as GitHub secrets for the reply workflow, typing each value at the
+prompt:
+
+```sh
+for name in X_API_KEY X_API_SECRET X_ACCESS_TOKEN X_ACCESS_SECRET; do
+  gh secret set "$name" -R <owner/name>
+done
+```
+
 ## 5. Create the memory store
 
 Site agents pass screenshots and finished results through a memory store
@@ -100,7 +115,7 @@ npx omnara memory-stores create --name rankings --agent-access read_write --json
    - `CLAUDE_MODEL`, `GPT_MODEL`, `GEMINI_MODEL`, and `MUSE_MODEL` for the
      judges: the cheapest model from each lab that accepts images, such as
      `anthropic/claude-haiku-5.5`, `openai/gpt-5-nano`,
-     `google/gemini-2.5-flash-lite`, and `meta/muse-glimmer-30b`.
+     `google/gemini-3.5-flash-lite`, and `meta/muse-glimmer-30b`.
 
    If a model isn't granted, ask the user whether to add it with
    `npx omnara models create` and `npx omnara grant models add`.
@@ -119,11 +134,13 @@ otherwise `npx omnara profiles create --name <profile> --file <file> --json`.
 | --- | --- | --- |
 | `agents/judge.yaml` | `rankings-judge` | `MODEL_PROVIDER_CONFIG`, `GPT_MODEL` |
 | `agents/site.yaml` | `rankings-site` | `MODEL_PROVIDER_CONFIG`, `MODEL_NAME`, and the four judge models |
-| `agents/rankings.yaml` | `rankings` | all of them from steps 2 to 6 |
+| `agents/rankings.yaml` | `rankings` | all of them from steps 2 to 6, and `X_READ_SECRET_ID` |
 
 Note the `rankings` profile's `id` and `current_config_id`.
 
-## 8. Run the dry run
+## 8. Start the host and run the dry run
+
+The `rankings` agent runs all the time. Start it with the dry run:
 
 ```sh
 npx omnara agents launch --profile <rankings-profile-id> --config <current-config-id> \
@@ -131,20 +148,34 @@ npx omnara agents launch --profile <rankings-profile-id> --config <current-confi
 ```
 
 Share `https://app.omnara.com/projects/<project-id>/agents/<agent-id>` so the
-user can watch the main agent start a machine and a site agent for each of
-the 20 sites, and each site agent start its four judges. The batch takes a
-few minutes. When it's done, run `git pull` and `npm run preview`.
+user can watch it start a machine and a site agent for each of the 20 sites,
+and each site agent start its four judges. The batch takes a few minutes.
+When it's done, run `git pull` and `npm run preview`.
 
-## 9. Wrap up
+## 9. Answer replies on X
+
+After the user posts the launch post, set `x_post_url` in `site/config.json`
+to its URL and commit it. Then have a cron ask the host to check for replies
+every minute:
+
+```sh
+npx omnara crons create --name rankings-x --target-type agent --target-agent-id <agent-id> \
+  --cron "* * * * *" --message-template "Check X for new replies." --json
+```
+
+Each new reply that names a website gets ranked and answered with its share
+card, usually within a few minutes.
+
+## 10. Wrap up
 
 Tell the user:
 
-- **Rank more sites:** send domains to the same main agent, in the console or
+- **Rank more sites:** send domains to the same host agent, in the console or
   with `npx omnara agents chat <agent-id>`. It skips sites it already ranked
   unless asked to rerun them.
 - **Publish the site:** deploy with `npm run build` and the `dist` folder on
   any static host, and set `site/config.json`.
 - **Remove it:** delete the three profiles with
   `npx omnara profiles delete <agent-profile-id>`, then the `rankings` memory
-  store, the `rankings-psi-key` secret, and the `rankings-github`
-  integration.
+  store, the `rankings-psi-key` and `rankings-x-read` secrets, the
+  `rankings-x` cron, and the `rankings-github` integration.
