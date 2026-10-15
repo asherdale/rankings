@@ -1,32 +1,32 @@
 {
   "domain": "hilton.com",
   "status": "done",
-  "audited_at": "2026-10-15T17:07:04Z",
-  "score": 7.0,
+  "audited_at": "2026-10-15T17:30:26Z",
+  "score": 7.5,
   "judges": {
     "claude": {
       "model": "anthropic/claude-haiku-5.5",
       "score": 7,
-      "roast": "Forty-some hotel brands later, you still can't tell which one's the Hilton."
+      "roast": "Hilton's homepage has more carousels than the lobby has chairs."
     },
     "gpt": {
       "model": "openai/gpt-5-nano",
-      "score": 7,
-      "roast": "Huge hero image drowns the purpose; navigation loses its compass."
+      "score": 9,
+      "roast": "The hero overwhelms with imagery; navigation hides in plain brochure, too busy."
     },
     "gemini": {
       "model": "google/gemini-3.5-flash-lite",
       "score": 7,
-      "roast": "Booking a room requires navigating more banners than an airport duty-free."
+      "roast": "A billion-dollar hotel empire wrapped in a generic stock-photo living room."
     },
     "muse": {
       "model": "meta/muse-glimmer-30b",
       "score": 7,
-      "roast": "Hilton asks for loyalty before you pick a city."
+      "roast": "Blue Honors pop-up hovers over search like it paid for the view."
     }
   },
-  "mobile_speed": 28,
-  "desktop_speed": 37,
+  "mobile_speed": 11,
+  "desktop_speed": 32,
   "accessibility": 96,
   "seo": 100,
   "agent_readiness": null,
