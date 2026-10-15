@@ -9,6 +9,8 @@ import tarfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from x_inbox import STATE as X_STATE
+
 ROOT = Path(__file__).resolve().parent.parent
 DOMAIN = re.compile(r"^[a-z0-9-]+(\.[a-z0-9-]+)+$")
 JUDGES = {"claude", "gpt", "gemini", "muse"}
@@ -17,13 +19,13 @@ KEYS = {"domain", "status", "audited_at", "score", "judges", *MEASUREMENTS, "age
         "blocks_automated_browsers", "minutes"}
 JPEG = b"\xff\xd8\xff"
 STALE = timedelta(minutes=20)
+UNANSWERED = timedelta(hours=1)
 
 
-def is_stale(placeholder):
-    queued = placeholder.get("queued_at")
-    if not queued:
+def older_than(stamp, limit):
+    if not stamp:
         return True
-    return datetime.now(timezone.utc) - datetime.fromisoformat(queued.replace("Z", "+00:00")) > STALE
+    return datetime.now(timezone.utc) - datetime.fromisoformat(stamp.replace("Z", "+00:00")) > limit
 
 
 def is_int(value, low, high):
@@ -78,6 +80,27 @@ def unpack(bundle):
     return (None, error) if error else (files, None)
 
 
+def queue_replies(skipped):
+    state = json.loads(X_STATE.read_text()) if X_STATE.exists() else {}
+    sent_log = ROOT / "replies" / "sent.txt"
+    sent = set(sent_log.read_text().split()) if sent_log.exists() else set()
+    replies, waiting = [], []
+    for request in state.get("pending", []):
+        domain, post = request["domain"], request["reply_id"]
+        path = ROOT / "results" / f"{domain}.json"
+        if post in sent:
+            continue
+        if path.exists() and json.loads(path.read_text()).get("status") == "done":
+            (ROOT / "replies").mkdir(exist_ok=True)
+            (ROOT / "replies" / f"{post}.json").write_text(json.dumps({"domain": domain, "reply_id": post}) + "\n")
+            replies.append(f"{domain}:{post}")
+        elif domain not in skipped and not older_than(request.get("asked_at"), UNANSWERED):
+            waiting.append(request)
+    if state:
+        X_STATE.write_text(json.dumps({**state, "pending": waiting}))
+    return replies
+
+
 def git(*args, check=True):
     return subprocess.run(["git", *args], cwd=ROOT, check=check, capture_output=True, text=True)
 
@@ -86,8 +109,6 @@ def main():
     parser = argparse.ArgumentParser(description="Publish finished bundles from the inbox and push them.")
     parser.add_argument("--inbox", default="/workspace/inbox")
     parser.add_argument("--skip", nargs="*", default=[], help="domains that were skipped; their placeholders are removed")
-    parser.add_argument("--reply", nargs="*", default=[], metavar="DOMAIN:POST_ID",
-                        help="reply on X to these posts with these domains' results")
     args = parser.parse_args()
 
     inbox = Path(args.inbox)
@@ -114,23 +135,10 @@ def main():
             path.unlink()
     for path in (ROOT / "results").glob("*.json"):
         placeholder = json.loads(path.read_text())
-        if placeholder.get("status") == "scoring" and is_stale(placeholder):
+        if placeholder.get("status") == "scoring" and older_than(placeholder.get("queued_at"), STALE):
             path.unlink()
 
-    replies = []
-    sent_log = ROOT / "replies" / "sent.txt"
-    sent = set(sent_log.read_text().split()) if sent_log.exists() else set()
-    for item in args.reply:
-        domain, _, post = item.partition(":")
-        if post in sent:
-            continue
-        path = ROOT / "results" / f"{domain}.json"
-        if not DOMAIN.match(domain) or not post.isdigit() or not path.exists() or json.loads(path.read_text()).get("status") != "done":
-            problems.append(f"can't reply to {item}: no finished result")
-            continue
-        (ROOT / "replies").mkdir(exist_ok=True)
-        (ROOT / "replies" / f"{post}.json").write_text(json.dumps({"domain": domain, "reply_id": post}) + "\n")
-        replies.append(item)
+    replies = queue_replies(set(args.skip))
 
     git("add", "-A", "--", "results", "cards", "shots", "replies")
     pushed = False

@@ -51,12 +51,13 @@ def upload(image):
     return call(UPLOAD, body, f"multipart/form-data; boundary={boundary}")["data"]["id"]
 
 
-def text_for(result):
+def text_for(result, site_url):
     judges = " · ".join(f"{name} {result['judges'][key]['score']}" for key, name in JUDGES)
-    return f"{result['domain']}: {result['score']:.1f}/10\n{judges}"
+    return f"{result['score']:.1f}/10 · {judges}\nall four roasts: {site_url}/{result['domain']}/"
 
 
 def main():
+    site_url = json.loads((ROOT / "site" / "config.json").read_text())["site_url"].rstrip("/")
     sent = ROOT / "replies" / "sent.txt"
     for request in sorted((ROOT / "replies").glob("*.json")):
         job = json.loads(request.read_text())
@@ -65,7 +66,7 @@ def main():
             continue
         try:
             media = upload(ROOT / "cards" / f"{job['domain']}.jpg")
-            body = {"text": text_for(result), "reply": {"in_reply_to_tweet_id": job["reply_id"]}, "media": {"media_ids": [media]}}
+            body = {"text": text_for(result, site_url), "reply": {"in_reply_to_tweet_id": job["reply_id"]}, "media": {"media_ids": [media]}}
             call(POST, json.dumps(body).encode(), "application/json")
             print(f"replied to {job['reply_id']} with {job['domain']}")
         except urllib.error.HTTPError as exc:

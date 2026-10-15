@@ -5,6 +5,7 @@ import os
 import re
 import urllib.parse
 import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
 
 from enqueue import normalize
@@ -19,9 +20,9 @@ TOKEN = re.compile(r"(?<![@\w])(?:https?://)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:/\S*)
 def launch_post():
     config = json.loads((ROOT / "site" / "config.json").read_text())
     match = re.search(r"/status/(\d+)", config.get("x_post_url", ""))
-    if not match:
-        raise SystemExit("x_inbox.py: set x_post_url in site/config.json to the launch post")
-    return match.group(1), {config.get("x_handle", "").lower(), config.get("x_bot_handle", "").lower()} - {""}
+    if not match or not config.get("x_handle"):
+        raise SystemExit("x_inbox.py: set x_post_url and x_handle in site/config.json")
+    return match.group(1), config["x_handle"].lower()
 
 
 def search(post, since):
@@ -63,23 +64,27 @@ def main():
     parser.add_argument("--since", help="only replies newer than this post ID")
     args = parser.parse_args()
 
-    post, own_handles = launch_post()
+    post, handle = launch_post()
     state = json.loads(STATE.read_text()) if STATE.exists() else {}
     replies, users = search(post, args.since or state.get("newest_id"))
     sent_log = ROOT / "replies" / "sent.txt"
     sent = set(sent_log.read_text().split()) if sent_log.exists() else set()
+    pending = state.get("pending", [])
+    known = sent | {request["reply_id"] for request in pending}
+    asked_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     found = []
     for reply in sorted(replies, key=lambda r: int(r["id"])):
         author = users.get(reply["author_id"], "")
         domain = domain_of(reply)
-        if not domain or author.lower() in own_handles or reply["id"] in sent:
+        mentioned = {m.get("username", "").lower() for m in reply.get("entities", {}).get("mentions", [])}
+        if not domain or handle not in mentioned or author.lower() == handle or reply["id"] in known:
             continue
         result = ROOT / "results" / f"{domain}.json"
         ranked = result.exists() and json.loads(result.read_text()).get("status") == "done"
         found.append({"reply_id": reply["id"], "author": author, "domain": domain, "ranked": ranked})
+        pending.append({"reply_id": reply["id"], "domain": domain, "asked_at": asked_at})
     newest = max([int(r["id"]) for r in replies] + [int(state.get("newest_id") or 0)])
-    if newest:
-        STATE.write_text(json.dumps({"newest_id": str(newest)}))
+    STATE.write_text(json.dumps({"newest_id": str(newest) if newest else None, "pending": pending}))
     print(json.dumps({"replies": found, "newest_id": str(newest) if newest else None}, indent=2))
 
 

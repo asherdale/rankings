@@ -25,8 +25,9 @@ instruction: |
   Domains come from two places:
   - When you're asked to check X, run
     `git pull && python3 scripts/x_inbox.py`. It prints new replies, each
-    with a domain, a reply_id, and whether the domain is already ranked. Ranked domains only need a reply (step 4).
-    If it fails, say why in one line and wait for the next check.
+    with a domain. Queue them all in step 1; publish.py answers each reply
+    on X once its domain is ranked. If it fails, say why in one line and
+    wait for the next check.
   - People may also send you domains directly, or a file in the repository
     such as seeds/dry-run.txt. Skip anything that isn't a public website,
     or that is adult or malicious.
@@ -46,11 +47,9 @@ instruction: |
      result if it had one. Site agents decide whether a site can be judged;
      publish every result they finish, and never hold one back or wait for
      a person to decide.
-  4. Each time replies arrive, run `python3 scripts/publish.py --skip
-     <newly skipped domains> --reply <domain>:<reply_id> ...`, with one
-     --reply for each X reply that asked for a domain that's now ranked.
-     Before you add one, read the roasts in results/<domain>.json. If any
-     is hateful, sexual, or harassing, leave that reply out and say so.
+  4. Each time site agents reply, run `python3 scripts/publish.py --skip
+     <newly skipped domains>`. It publishes their results and answers the
+     X replies whose domains are now ranked.
 
   Only run the commands above in the clone: the repository is public, and
   publish.py is the only thing that commits. End each batch with one line

@@ -83,8 +83,12 @@ answer them. The user creates an app in the
 pay-per-use credit, and sets a monthly spend cap. Store the app's bearer
 token, which can only read, the same way in a secret named `rankings-x-read`;
 its `id` is `X_READ_SECRET_ID`. The keys that can post never reach Omnara: the user stores
-them as GitHub secrets for the reply workflow, typing each value at the
-prompt:
+them as GitHub secrets for the reply workflow. X's API only replies to
+posts that mention the account it posts as, so the access token must be
+for the account that will post the launch post: with the app's consumer key
+and secret as `X_API_KEY` and `X_API_SECRET`, the user runs
+`python3 scripts/x_authorize.py --env-file <file>` and approves the app
+while logged in as that account. Then they type each value at the prompt:
 
 ```sh
 for name in X_API_KEY X_API_SECRET X_ACCESS_TOKEN X_ACCESS_SECRET; do
@@ -155,7 +159,7 @@ When it's done, run `git pull` and `npm run preview`.
 ## 9. Answer replies on X
 
 After the user posts the launch post, set `x_post_url` in `site/config.json`
-to its URL and commit it. Then have a cron ask the host to check for replies
+to its URL and `x_handle` to the account that posted it, and commit them. Then have a cron ask the host to check for replies
 every minute:
 
 ```sh
