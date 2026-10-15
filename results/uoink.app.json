@@ -1,5 +1,36 @@
 {
   "domain": "uoink.app",
-  "status": "scoring",
-  "queued_at": "2026-10-15T21:53:33Z"
+  "status": "done",
+  "audited_at": "2026-10-15T21:54:42Z",
+  "score": 7.5,
+  "judges": {
+    "claude": {
+      "model": "anthropic/claude-haiku-5.5",
+      "score": 7,
+      "roast": "Uoink that shit, but the Mac build is still queued."
+    },
+    "gpt": {
+      "model": "openai/gpt-5-nano",
+      "score": 8,
+      "roast": "That shit headline is unforgettable, but the navigation still needs directions."
+    },
+    "gemini": {
+      "model": "google/gemini-3.5-flash-lite",
+      "score": 8,
+      "roast": "A pig pun homepage so intense even local AI models start oinking."
+    },
+    "muse": {
+      "model": "meta/muse-glimmer-30b",
+      "score": 7,
+      "roast": "Uoink that shit, then whisper the pitch in monospace."
+    }
+  },
+  "mobile_speed": 96,
+  "desktop_speed": 100,
+  "accessibility": 94,
+  "seo": 100,
+  "agent_readiness": 51,
+  "blocks_automated_browsers": false,
+  "minutes": 1,
+  "agent_readiness_summary": "Ora grades uoink.app 51/100 (C), with weak discovery (5/11), access (40/59), and usability (25/61), and no OpenAPI spec, OAuth, or ARD catalog published."
 }
