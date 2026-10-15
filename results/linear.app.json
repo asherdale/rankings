@@ -1,5 +1,36 @@
 {
   "domain": "linear.app",
-  "status": "scoring",
-  "queued_at": "2026-10-15T18:32:22Z"
+  "status": "done",
+  "audited_at": "2026-10-15T18:33:32Z",
+  "score": 8.5,
+  "judges": {
+    "claude": {
+      "model": "anthropic/claude-haiku-5.5",
+      "score": 8,
+      "roast": "Homepage hero: a 'Faster app launch' ticket, forever In Progress."
+    },
+    "gpt": {
+      "model": "openai/gpt-5-nano",
+      "score": 7,
+      "roast": "Giant dark hero swallows first-click clarity; action lost in shadows."
+    },
+    "gemini": {
+      "model": "google/gemini-3.5-flash-lite",
+      "score": 10,
+      "roast": "So polished your Jira backlog will file for emotional distress."
+    },
+    "muse": {
+      "model": "meta/muse-glimmer-30b",
+      "score": 9,
+      "roast": "Hero issue literally whines about infinite spinners."
+    }
+  },
+  "mobile_speed": 28,
+  "desktop_speed": 50,
+  "accessibility": 81,
+  "seo": 92,
+  "agent_readiness": 72,
+  "blocks_automated_browsers": false,
+  "minutes": 1,
+  "agent_readiness_summary": "Ora grades linear.app 72/100 (Grade B), with its biggest gaps in Access (36/60) and Usability (57/80), led by a missing published OpenAPI spec."
 }
