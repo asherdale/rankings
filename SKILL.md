@@ -88,10 +88,13 @@ posts that mention the account it posts as, so the access token must be
 for the account that will post the launch post: with the app's consumer key
 and secret as `X_API_KEY` and `X_API_SECRET`, the user runs
 `python3 scripts/x_authorize.py --env-file <file>` and approves the app
-while logged in as that account. Then they type each value at the prompt:
+while logged in as that account. `OPENAI_API_KEY` is an OpenAI API key; the
+workflow runs each share card through OpenAI's free moderation check and
+leaves the card off any reply it flags. Then they type each value at the
+prompt:
 
 ```sh
-for name in X_API_KEY X_API_SECRET X_ACCESS_TOKEN X_ACCESS_SECRET; do
+for name in X_API_KEY X_API_SECRET X_ACCESS_TOKEN X_ACCESS_SECRET OPENAI_API_KEY; do
   gh secret set "$name" -R <owner/name>
 done
 ```

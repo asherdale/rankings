@@ -9,18 +9,26 @@ concurrency:
   group: deploy
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - name: Only deploy agent changes to results
-        if: github.event_name == 'push' && github.actor != github.repository_owner
+      - name: Only run code the owner pushed
+        if: github.actor != github.repository_owner
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          changed=$(git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" | grep -v -E '^(results|cards|shots|replies)/' || true)
-          if [ -n "$changed" ]; then echo "Agents may only change results: $changed"; exit 1; fi
+          trusted=$(gh api "repos/${{ github.repository }}/actions/workflows/deploy.yml/runs?branch=main&event=push&actor=${{ github.repository_owner }}&per_page=1" --jq '.workflow_runs[0].head_sha // empty')
+          if [ -z "$trusted" ]; then echo "Couldn't find the owner's latest push"; exit 1; fi
+          git fetch -q --depth=1 origin "$trusted"
+          files=$(git diff --no-renames --name-only "$trusted" "${{ github.sha }}")
+          changed=$(printf '%s\n' "$files" | grep -v -E '^(results|cards|shots|replies)/' | grep . || true)
+          if [ -n "$changed" ]; then echo "Only the owner may change code: $changed"; exit 1; fi
       - uses: actions/setup-node@v5
         with:
           node-version: 22
