@@ -68,9 +68,9 @@ function loadSites() {
     }
   }
   sites.sort((a, b) => b.score - a.score || b.measured - a.measured || a.domain.localeCompare(b.domain))
-  sites.forEach((site, index) => {
-    site.rank = index + 1
-  })
+  const own = config.site_url ? new URL(config.site_url).hostname : ''
+  let rank = 0
+  for (const site of sites) if (site.domain !== own) site.rank = ++rank
   return { sites, pending }
 }
 
@@ -181,6 +181,7 @@ function backdrop() {
 
 function indexPage(sites, pending) {
   const rows = sites
+    .filter((site) => site.rank)
     .map(
       (site) => `<tr data-domain="${esc(site.domain)}" onclick="location.href='${esc(site.domain)}/'">
 <td class="rank" data-value="${site.rank}">${site.rank <= 3 ? `<span class="medal ${MEDALS[site.rank - 1]}">${site.rank}</span>` : site.rank}</td>
@@ -306,7 +307,7 @@ ${note ? `<p class="row-note">${esc(note)}</p>` : ''}
 <section class="summary">
 ${ring(site.score, 168)}
 <div class="summary-text">
-<div class="summary-grade">${gradeBadge(site.score)}<span>${label}</span><span class="dot">·</span><span>Rank <b>#${site.rank}</b> of ${total}</span></div>
+<div class="summary-grade">${gradeBadge(site.score)}<span>${label}</span>${site.rank ? `<span class="dot">·</span><span>Rank <b>#${site.rank}</b> of ${total}</span>` : ''}</div>
 <p class="verdict">The average of four AI judges, each from a different lab.</p>
 </div>
 </section>
@@ -392,7 +393,7 @@ mkdirSync(join(dist, 'how'), { recursive: true })
 writeFileSync(join(dist, 'how', 'index.html'), howPage(sites))
 for (const site of sites) {
   mkdirSync(join(dist, site.domain), { recursive: true })
-  writeFileSync(join(dist, site.domain, 'index.html'), sitePage(site, sites.length))
+  writeFileSync(join(dist, site.domain, 'index.html'), sitePage(site, sites.filter((s) => s.rank).length))
   if (site.hasShot) copyFileSync(join(dataDir, 'shots', `${site.domain}.jpg`), join(dist, 'shots', `${site.domain}.jpg`))
   if (site.hasCard) copyFileSync(join(dataDir, 'cards', `${site.domain}.jpg`), join(dist, 'cards', `${site.domain}.jpg`))
 }
