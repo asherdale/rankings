@@ -1,36 +1,36 @@
 {
   "domain": "amazon.com",
   "status": "done",
-  "audited_at": "2026-10-15T00:58:02Z",
+  "audited_at": "2026-10-15T17:27:59Z",
   "score": 6.0,
   "judges": {
     "claude": {
       "model": "anthropic/claude-haiku-5.5",
       "score": 6,
-      "roast": "Forty-plus departments in the nav, and still no clear place to start."
+      "roast": "Forty-plus departments in one nav bar: a mall with no map."
     },
     "gpt": {
       "model": "openai/gpt-5-nano",
-      "score": 7,
-      "roast": "Amazon's homepage looks like a catalog exploded onto your screen."
+      "score": 6,
+      "roast": "Amazon's homepage throws every product at you in one megamural."
     },
     "gemini": {
       "model": "google/gemini-3.5-flash-lite",
       "score": 5,
-      "roast": "A chaotic digital garage sale disguised as an online superstore."
+      "roast": "A sensory overload of carousels, cards, and existential bargain-hunting."
     },
     "muse": {
       "model": "meta/muse-glimmer-30b",
-      "score": 6,
-      "roast": "Deck the halls under $50 while shopping Spider-Man costumes in October."
+      "score": 7,
+      "roast": "Amazon decided Seattle needs polka dots, football, and Ninja air fryers."
     }
   },
-  "mobile_speed": 45,
-  "desktop_speed": 68,
-  "accessibility": 89,
-  "seo": 92,
+  "mobile_speed": 83,
+  "desktop_speed": 98,
+  "accessibility": 96,
+  "seo": 91,
   "agent_readiness": 46,
   "blocks_automated_browsers": false,
   "minutes": 1,
-  "agent_readiness_summary": "Amazon.com scores 46/100 (grade D), with its weakest areas in Access (20/56) and Usability (25/69)."
+  "agent_readiness_summary": "Amazon scores 46/100 (Grade D), with the biggest gaps in Access (no published OpenAPI spec) and Usability (no scoped permissions, WebMCP, or MCP server)."
 }
