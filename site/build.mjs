@@ -187,7 +187,7 @@ function indexPage(sites, pending) {
 <td class="rank" data-value="${site.rank}">${site.rank <= 3 ? `<span class="medal ${MEDALS[site.rank - 1]}">${site.rank}</span>` : site.rank}</td>
 <td class="site"><div><img src="${favicon(site.domain)}" alt="" width="24" height="24" loading="lazy"><div><a href="${esc(site.domain)}/">${esc(site.domain)}</a><span>${esc(roastLine(site))}</span></div></div></td>
 <td class="total ${grade(site.score)[3]}" data-value="${site.score}"><span class="num">${site.score.toFixed(1)}</span>${gradeBadge(site.score)}</td>
-${JUDGES.map(([key]) => site.judges[key].score).map((value) => `<td class="cat ${grade(value)[3]}" data-value="${value}"><span>${value}</span><i style="--w:${value * 10}%"></i></td>`).join('\n')}
+${JUDGES.map(([key]) => site.judges[key].score).map((value) => `<td class="cat ${grade(value)[3]}" data-value="${value}" style="--v:${value}"><span>${value}</span></td>`).join('\n')}
 </tr>`,
     )
     .join('\n')
